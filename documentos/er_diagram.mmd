@@ -1,0 +1,132 @@
+erDiagram
+  USUARIOS {
+    INT id PK "AUTO_INCREMENT"
+    TIMESTAMP created_at
+    VARCHAR nome_usuario
+    VARCHAR email
+    VARCHAR password
+    BOOLEAN ativo
+  }
+
+  AREAS_ACADEMICAS {
+    INT id PK
+    TIMESTAMP created_at
+    INT codigo_area
+    TEXT descricao_area
+    VARCHAR nome_area
+  }
+
+  PROFESSORES {
+    INT id PK
+    TIMESTAMP created_at
+    VARCHAR nome_professor
+    INT matricula_professor
+    INT id_area FK
+    INT usuario_id FK
+    VARCHAR telefone
+  }
+
+  ALUNOS {
+    INT id PK
+    TIMESTAMP created_at
+    VARCHAR nome_aluno
+    INT matricula_aluno
+    INT id_curso FK
+    INT usuario_id FK
+    VARCHAR telefone
+  }
+
+  CURSOS {
+    INT id PK
+    TIMESTAMP created_at
+    VARCHAR coordenador
+    INT duracao
+    TEXT descricao_curso
+    VARCHAR nome_curso
+  }
+
+  TURMAS {
+    INT id PK
+    TIMESTAMP created_at
+    VARCHAR cod_turma
+    VARCHAR turno
+    INT quantidade_alunos
+    INT id_curso FK
+  }
+
+  PROJETOS {
+    INT id PK
+    TIMESTAMP created_at
+    VARCHAR nome_projeto
+    INT orientador FK
+    VARCHAR coorientador
+    VARCHAR matricula_alunos
+    TEXT nome_autores
+    VARCHAR tipo_projeto
+    BOOLEAN published
+    DATETIME published_at
+    TINYINT destaque
+  }
+
+  CUSTOS {
+    INT id PK
+    TIMESTAMP created_at
+    INT id_projeto FK
+    VARCHAR equipamento
+    DOUBLE custos_equipamento
+    VARCHAR insumos
+    DOUBLE custos_insumos
+  }
+
+  REGISTROS {
+    INT id PK
+    INT id_projeto FK
+    DATE data_reuniao
+    TEXT lista_participantes
+    TIME duracao_reuniao
+    VARCHAR titulo_reuniao
+    TEXT relatorio
+    DATETIME relatorio_edit_deadline
+    TEXT relatorio_edit_allowed
+  }
+
+  MEUSPROJETOS {
+    INT id PK
+    TIMESTAMP created_at
+    VARCHAR nome_projeto
+    INT usuarios FK
+    DATE data_publicacao
+    VARCHAR area_de_pesquisa
+    VARCHAR coordenador
+  }
+
+  ARQUIVOS {
+    INT id PK
+    TIMESTAMP created_at
+    INT id_meuprojeto FK
+    TEXT resumo
+    TEXT justificativa
+    TEXT objetivo
+    TEXT sumario
+    TEXT introducao
+    TEXT bibliografia
+    VARCHAR nome_arquivo
+    VARCHAR caminho_arquivo
+    VARCHAR tipo_arquivo
+    INT tamanho_arquivo
+    INT projeto_id FK
+  }
+
+  USUARIOS ||--o{ USUARIO_PROJETO : "associa"
+  PROJETOS ||--o{ USUARIO_PROJETO : "tem"
+
+  PROFESSORES ||--o{ PROJETOS : "orienta"
+  PROJETOS ||--o{ REGISTROS : "possui"
+  PROJETOS ||--o{ CUSTOS : "tem"
+  MEUSPROJETOS ||--o{ ARQUIVOS : "contém"
+  PROJETOS ||--o{ ARQUIVOS : "possui"
+
+  CURSOS ||--o{ TURMAS : "possui"
+  AREAS_ACADEMICAS ||--o{ PROFESSORES : "contém"
+  CURSOS ||--o{ ALUNOS : "tem"
+  USUARIOS ||--o{ MEUSPROJETOS : "cria"

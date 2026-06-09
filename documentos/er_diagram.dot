@@ -1,0 +1,29 @@
+digraph ER {
+  rankdir=LR;
+  node [shape=record, fontname=Helvetica];
+
+  usuarios [label="{usuarios|id: INT PK\lcreated_at: TIMESTAMP\lnome_usuario: VARCHAR\lemail: VARCHAR\lpassword: VARCHAR\lativo: BOOLEAN\l}"];
+  areas_academicas [label="{areas_academicas|id: INT PK\lcreated_at: TIMESTAMP\lcodigo_area: INT\ldescricao_area: TEXT\lnome_area: VARCHAR\l}"];
+  professores [label="{professores|id: INT PK\lcreated_at: TIMESTAMP\lnome_professor: VARCHAR\lmatricula_professor: INT\lid_area: INT FK\lusuario_id: INT FK\ltelefone: VARCHAR\l}"];
+  alunos [label="{alunos|id: INT PK\lcreated_at: TIMESTAMP\lnome_aluno: VARCHAR\lmatricula_aluno: INT\lid_curso: INT FK\lusuario_id: INT FK\ltelefone: VARCHAR\l}"];
+  cursos [label="{cursos|id: INT PK\lcreated_at: TIMESTAMP\lcoordenador: VARCHAR\lduracao: INT\ldescricao_curso: TEXT\lnome_curso: VARCHAR\l}"];
+  turmas [label="{turmas|id: INT PK\lcreated_at: TIMESTAMP\lcod_turma: VARCHAR\lturno: VARCHAR\lquantidade_alunos: INT\lid_curso: INT FK\l}"];
+  projetos [label="{projetos|id: INT PK\lcreated_at: TIMESTAMP\lnome_projeto: VARCHAR\lorientador: INT FK\lcoorientador: VARCHAR\lmatricula_alunos: VARCHAR\lnome_autores: TEXT\ltipo_projeto: VARCHAR\lpublished: BOOLEAN\lpublished_at: DATETIME\ldestaque: TINYINT\l}"];
+  custos [label="{custos|id: INT PK\lcreated_at: TIMESTAMP\lid_projeto: INT FK\lequipamento: VARCHAR\lcustos_equipamento: DOUBLE\linsumos: VARCHAR\lcustos_insumos: DOUBLE\l}"];
+  registros [label="{registros|id: INT PK\lid_projeto: INT FK\ldata_reuniao: DATE\llista_participantes: TEXT\lduracao_reuniao: TIME\ltitulo_reuniao: VARCHAR\lrelatorio: TEXT\lrelatorio_edit_deadline: DATETIME\lrelatorio_edit_allowed: TEXT\l}"];
+  meusprojetos [label="{meusprojetos|id: INT PK\lcreated_at: TIMESTAMP\lnome_projeto: VARCHAR\lusuarios: INT FK\ldata_publicacao: DATE\larea_de_pesquisa: VARCHAR\lcoordenador: VARCHAR\l}"];
+  arquivos [label="{arquivos|id: INT PK\lcreated_at: TIMESTAMP\lid_meuprojeto: INT FK\lresumo: TEXT\ljustificativa: TEXT\lobjetivo: TEXT\lsumario: TEXT\lintroducao: TEXT\lbibliografia: TEXT\lnome_arquivo: VARCHAR\lcaminho_arquivo: VARCHAR\ltipo_arquivo: VARCHAR\ltamanho_arquivo: INT\lprojeto_id: INT FK\l}"];
+  usuario_projeto [label="{usuario_projeto|id: INT PK\lusuario_id: INT FK\lprojeto_id: INT FK\lfuncao: VARCHAR\ldata_associacao: TIMESTAMP\l}"];
+
+  usuarios -> usuario_projeto [label="1..*"];
+  projetos -> usuario_projeto [label="1..*"];
+  professores -> projetos [label="1..*"];
+  projetos -> registros [label="1..*"];
+  projetos -> custos [label="1..*"];
+  meusprojetos -> arquivos [label="1..*"];
+  projetos -> arquivos [label="1..*"];
+  cursos -> turmas [label="1..*"];
+  areas_academicas -> professores [label="1..*"];
+  cursos -> alunos [label="1..*"];
+  usuarios -> meusprojetos [label="1..*"];
+}
