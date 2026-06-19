@@ -14,6 +14,14 @@ export default function ProjetoDetailPage() {
   const [orientadorNome, setOrientadorNome] = useState(null);
   const [alunoNomes, setAlunoNomes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [previewArquivo, setPreviewArquivo] = useState(null);
+
+  const isPDF = (caminho) => /\.pdf$/i.test(caminho || '');
+
+  const selectPreviewArquivo = (arquivo) => {
+    if (!arquivo || !isPDF(arquivo.caminho_arquivo)) return;
+    setPreviewArquivo(arquivo);
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -114,21 +122,40 @@ export default function ProjetoDetailPage() {
               {arquivos.length === 0 ? (
                   <p className="text-gray-500">Nenhum arquivo encontrado.</p>
                 ) : (
-                  <ul className="space-y-3">
-                    {arquivos.map(a => (
-                      <li key={a.id} className="flex items-center justify-between bg-gray-50 border border-gray-100 rounded p-3">
-                        <div className="flex-1">
-                          <div className="font-semibold text-gray-800">{a.nome_arquivo || 'Arquivo'}</div>
-                          {a.resumo && <div className="text-xs text-gray-600 mt-1">{a.resumo}</div>}
-                          <div className="text-xs text-gray-500 mt-2">Enviado em: {a.created_at ? new Date(a.created_at).toLocaleString('pt-BR') : '—'}</div>
+                  <>
+                    {previewArquivo && (
+                      <div className="mb-4 bg-white rounded shadow p-4">
+                        <div className="flex items-center justify-between gap-3 mb-3">
+                          <div>
+                            <div className="text-sm font-semibold text-gray-900">Pré-visualização PDF</div>
+                            <div className="text-sm text-gray-600">{previewArquivo.nome_arquivo}</div>
+                          </div>
+                          <button onClick={() => setPreviewArquivo(null)} className="text-sm text-blue-600 hover:underline">Fechar visualização</button>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <a className="inline-flex items-center gap-2 px-3 py-2 rounded border border-sky-600 text-sky-600 hover:bg-sky-50" href={`/arquivos/${a.id}`}>🔎 Ver</a>
-                          <a className="inline-flex items-center gap-2 px-3 py-2 rounded bg-green-600 text-white hover:bg-green-700" href={downloadLink(a.caminho_arquivo)} target="_blank" rel="noreferrer">⤓ Baixar</a>
+                        <div className="h-[650px] rounded border overflow-hidden">
+                          <iframe src={downloadLink(previewArquivo.caminho_arquivo)} className="w-full h-full" title="PDF preview" />
                         </div>
-                      </li>
-                    ))}
-                  </ul>
+                      </div>
+                    )}
+                    <ul className="space-y-3">
+                      {arquivos.map(a => (
+                        <li key={a.id} className="flex flex-col lg:flex-row lg:items-center justify-between bg-gray-50 border border-gray-100 rounded p-3 gap-3">
+                          <div className="flex-1">
+                            <div className="font-semibold text-gray-800">{a.nome_arquivo || 'Arquivo'}</div>
+                            {a.resumo && <div className="text-xs text-gray-600 mt-1">{a.resumo}</div>}
+                            <div className="text-xs text-gray-500 mt-2">Enviado em: {a.created_at ? new Date(a.created_at).toLocaleString('pt-BR') : '—'}</div>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-3">
+                            {isPDF(a.caminho_arquivo) && (
+                              <button onClick={() => selectPreviewArquivo(a)} className="inline-flex items-center gap-2 px-3 py-2 rounded bg-sky-600 text-white hover:bg-sky-700">📄 Pré-visualizar PDF</button>
+                            )}
+                            <a className="inline-flex items-center gap-2 px-3 py-2 rounded border border-sky-600 text-sky-600 hover:bg-sky-50" href={`/arquivos/${a.id}`}>🔎 Ver</a>
+                            <a className="inline-flex items-center gap-2 px-3 py-2 rounded bg-green-600 text-white hover:bg-green-700" href={downloadLink(a.caminho_arquivo)} target="_blank" rel="noreferrer">⤓ Baixar</a>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
                 )}
             </div>
 

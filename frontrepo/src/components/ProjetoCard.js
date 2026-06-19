@@ -262,9 +262,6 @@ export default function ProjetoCard({ projeto, onEdit, onDelete, showActions = f
             <div className="flex justify-end gap-3">
               <button onClick={() => setShowModal(false)} className="px-4 py-2 rounded bg-gray-500 hover:bg-gray-400 border border-gray-200">Fechar</button>
               <button onClick={goToDetail} className="px-4 py-2 rounded bg-sky-600 hover:bg-sky-700 text-white font-semibold shadow">🔎 Ver detalhes</button>
-              {arquivoResumo && (
-                <a href={`${api.getApiUrl()}/downloadarquivo/${encodeURIComponent((projeto.arquivos && projeto.arquivos[0] && projeto.arquivos[0].caminho_arquivo) ? projeto.arquivos[0].caminho_arquivo.split('/').pop() : '')}`} target="_blank" rel="noreferrer" className="px-4 py-2 rounded bg-green-600 hover:bg-green-700 text-white font-semibold shadow">⤓ Baixar resumo</a>
-              )}
             </div>
           </div>
         </div>

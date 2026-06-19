@@ -8,15 +8,19 @@ const connection = require('../DBmysql/conectaraoDB');
  * @param {object} options - { q, field, limit, offset, projeto_id, usuario_id, ... }
  */
 async function queryTable(table, allowedFields = [], options = {}) {
-  const { q, field, limit, offset, projeto_id, usuario_id } = options || {};
+  const { q, field, limit, offset, projeto_id, id_meuprojeto, usuario_id } = options || {};
   let sql = `SELECT * FROM \`${table}\``;
   const params = [];
   const where = [];
 
   // Specific filters for arquivos table
   if (table === 'arquivos' && projeto_id) {
-    where.push(`(projeto_id = ? OR id_meuprojeto = ?)`);
-    params.push(projeto_id, projeto_id);
+    where.push('projeto_id = ? AND id_meuprojeto IS NULL');
+    params.push(projeto_id);
+  }
+  if (table === 'arquivos' && id_meuprojeto) {
+    where.push('id_meuprojeto = ? AND projeto_id IS NULL');
+    params.push(id_meuprojeto);
   }
 
   // Search filters
@@ -53,15 +57,19 @@ async function queryTable(table, allowedFields = [], options = {}) {
 }
 
 async function countTable(table, allowedFields = [], options = {}) {
-  const { q, field, projeto_id, usuario_id } = options || {};
+  const { q, field, projeto_id, id_meuprojeto, usuario_id } = options || {};
   let sql = `SELECT COUNT(*) as total FROM \`${table}\``;
   const params = [];
   const where = [];
 
   // Specific filters for arquivos table
   if (table === 'arquivos' && projeto_id) {
-    where.push(`(projeto_id = ? OR id_meuprojeto = ?)`);
-    params.push(projeto_id, projeto_id);
+    where.push('projeto_id = ? AND id_meuprojeto IS NULL');
+    params.push(projeto_id);
+  }
+  if (table === 'arquivos' && id_meuprojeto) {
+    where.push('id_meuprojeto = ? AND projeto_id IS NULL');
+    params.push(id_meuprojeto);
   }
 
   // Search filters

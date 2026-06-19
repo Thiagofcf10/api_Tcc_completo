@@ -213,8 +213,11 @@ export default function ArquivosPage() {
       <main className="flex-1 p-6">
         <h1 className="text-3xl font-bold mb-6 text-gray-800">📤 Gerenciar Arquivos</h1>
         {selectedProject && (
-          <div className="mb-4 inline-block px-3 py-1 rounded bg-blue-50 border border-blue-200 text-sm text-blue-700">
-            Projeto selecionado: <strong className="ml-1">{selectedProject.nome_projeto}</strong>
+          <div className="mb-4 rounded-lg border-l-4 border-blue-600 bg-blue-50 p-4">
+            <div className="text-sm font-semibold text-blue-900">Projeto selecionado</div>
+            <div className="text-xl font-bold text-blue-800">{selectedProject.nome_projeto}</div>
+            <div className="text-sm text-blue-700">Autores: {selectedProject.nome_autores}</div>
+            <div className="text-sm text-blue-700">Tipo: {selectedProject.tipo_projeto}</div>
           </div>
         )}
 

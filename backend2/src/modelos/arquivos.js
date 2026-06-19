@@ -1,17 +1,25 @@
 const connection = require('../DBmysql/conectaraoDB'); // Importa a conexão MySQL
 
-const getArquivos = async (projetoId = null) => {
-  if (projetoId) {
-    const [rows] = await connection.execute('SELECT * FROM arquivos WHERE projeto_id = ? OR id_meuprojeto = ?', [projetoId, projetoId]);
+const getArquivos = async (projetoId = null, idMeuProjeto = null) => {
+  if (projetoId !== null && projetoId !== undefined && projetoId !== '') {
+    const [rows] = await connection.execute('SELECT * FROM arquivos WHERE projeto_id = ? AND id_meuprojeto IS NULL', [projetoId]);
+    return rows;
+  }
+  if (idMeuProjeto !== null && idMeuProjeto !== undefined && idMeuProjeto !== '') {
+    const [rows] = await connection.execute('SELECT * FROM arquivos WHERE id_meuprojeto = ? AND projeto_id IS NULL', [idMeuProjeto]);
     return rows;
   }
   const [rows] = await connection.execute('SELECT * FROM arquivos');
   return rows;
 };
 
-const getArquivosTotal = async (projetoId = null) => {
-  if (projetoId) {
-    const [rows] = await connection.execute('SELECT COUNT(*) as total FROM arquivos WHERE projeto_id = ? OR id_meuprojeto = ?', [projetoId, projetoId]);
+const getArquivosTotal = async (projetoId = null, idMeuProjeto = null) => {
+  if (projetoId !== null && projetoId !== undefined && projetoId !== '') {
+    const [rows] = await connection.execute('SELECT COUNT(*) as total FROM arquivos WHERE projeto_id = ? AND id_meuprojeto IS NULL', [projetoId]);
+    return rows[0].total;
+  }
+  if (idMeuProjeto !== null && idMeuProjeto !== undefined && idMeuProjeto !== '') {
+    const [rows] = await connection.execute('SELECT COUNT(*) as total FROM arquivos WHERE id_meuprojeto = ? AND projeto_id IS NULL', [idMeuProjeto]);
     return rows[0].total;
   }
   const [rows] = await connection.execute('SELECT COUNT(*) as total FROM arquivos');
@@ -20,7 +28,7 @@ const getArquivosTotal = async (projetoId = null) => {
 
 // Obtém arquivos de um projeto específico
 const getArquivosPorProjeto = async (projetoId) => {
-  const [rows] = await connection.execute('SELECT * FROM arquivos WHERE projeto_id = ? OR id_meuprojeto = ?', [projetoId, projetoId]);
+  const [rows] = await connection.execute('SELECT * FROM arquivos WHERE projeto_id = ? AND id_meuprojeto IS NULL', [projetoId]);
   return rows;
 };
 
@@ -51,7 +59,7 @@ const inserirArquivo = async (arquivo) => {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   // Use null when id_meuprojeto or projeto_id are not provided to avoid foreign key issues
-  const projParam = projeto_id || id_meuprojeto || null;
+  const projParam = projeto_id || null;
   const idMeuParam = id_meuprojeto || null;
 
   const [result] = await connection.execute(query, [
@@ -113,6 +121,7 @@ const atualizarArquivo = async (id, arquivo, file) => {
   if (arquivo.introducao !== undefined) { fields.push('introducao = ?'); params.push(arquivo.introducao); }
   if (arquivo.bibliografia !== undefined) { fields.push('bibliografia = ?'); params.push(arquivo.bibliografia); }
   if (arquivo.projeto_id !== undefined) { fields.push('projeto_id = ?'); params.push(arquivo.projeto_id); }
+  if (arquivo.id_meuprojeto !== undefined) { fields.push('id_meuprojeto = ?'); params.push(arquivo.id_meuprojeto); }
 
   // file fields (if new file uploaded)
   if (file) {

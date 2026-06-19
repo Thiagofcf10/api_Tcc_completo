@@ -20,10 +20,8 @@ export default function CustosPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     id_projeto: '',
-    equipamento: '',
-    custos_equipamento: '',
-    insumos: '',
-    custos_insumos: ''
+    equipamentos: [{ name: '', price: '' }],
+    insumos: [{ name: '', price: '' }]
   });
 
   useEffect(() => {
@@ -67,12 +65,64 @@ export default function CustosPage() {
 
   const selectedProject = projetos.find(p => String(p.id) === String(selectedProjetoId));
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const updateEquipmentItem = (index, field, value) => {
+    setFormData(prev => {
+      const equipamentos = [...prev.equipamentos];
+      equipamentos[index] = { ...equipamentos[index], [field]: value };
+      return { ...prev, equipamentos };
+    });
+  };
+
+  const addEquipmentItem = () => {
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      equipamentos: [...prev.equipamentos, { name: '', price: '' }]
     }));
+  };
+
+  const removeEquipmentItem = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      equipamentos: prev.equipamentos.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateInsumoItem = (index, field, value) => {
+    setFormData(prev => {
+      const insumos = [...prev.insumos];
+      insumos[index] = { ...insumos[index], [field]: value };
+      return { ...prev, insumos };
+    });
+  };
+
+  const addInsumoItem = () => {
+    setFormData(prev => ({
+      ...prev,
+      insumos: [...prev.insumos, { name: '', price: '' }]
+    }));
+  };
+
+  const removeInsumoItem = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      insumos: prev.insumos.filter((_, i) => i !== index)
+    }));
+  };
+
+  const buildCustoPayload = () => {
+    const equipamentos = formData.equipamentos.filter(item => item.name.trim() || item.price);
+    const insumos = formData.insumos.filter(item => item.name.trim() || item.price);
+    const equipamentoText = equipamentos.map(item => `${item.name.trim() || 'Equipamento'} - R$ ${Number(item.price || 0).toFixed(2)}`).join('\n');
+    const insumosText = insumos.map(item => `${item.name.trim() || 'Insumo'} - R$ ${Number(item.price || 0).toFixed(2)}`).join('\n');
+    const totalEquipamentos = equipamentos.reduce((sum, item) => sum + Number(item.price || 0), 0);
+    const totalInsumos = insumos.reduce((sum, item) => sum + Number(item.price || 0), 0);
+
+    return {
+      equipamento: equipamentoText,
+      custos_equipamento: totalEquipamentos,
+      insumos: insumosText,
+      custos_insumos: totalInsumos
+    };
   };
 
   const handleAddCusto = async () => {
@@ -85,20 +135,16 @@ export default function CustosPage() {
       await fetchWithAuth(`${api.getApiUrl()}/inserircusto`, {
         method: 'POST',
         body: JSON.stringify({
-          ...formData,
           id_projeto: parseInt(selectedProjetoId),
-          custos_equipamento: parseFloat(formData.custos_equipamento),
-          custos_insumos: parseFloat(formData.custos_insumos)
+          ...buildCustoPayload()
         })
       });
 
       setToast({ type: 'success', message: 'Custo adicionado com sucesso' });
       setFormData({
         id_projeto: '',
-        equipamento: '',
-        custos_equipamento: '',
-        insumos: '',
-        custos_insumos: ''
+        equipamentos: [{ name: '', price: '' }],
+        insumos: [{ name: '', price: '' }]
       });
       setModalOpen(false);
       loadCustos(selectedProjetoId);
@@ -129,8 +175,11 @@ export default function CustosPage() {
       <main className="flex-1 p-6">
         <h1 className="text-3xl font-bold mb-6 text-gray-800">💰 Gerenciar Custos</h1>
         {selectedProject && (
-          <div className="mb-4 inline-block px-3 py-1 rounded bg-blue-50 border border-blue-200 text-sm text-blue-700">
-            Projeto selecionado: <strong className="ml-1">{selectedProject.nome_projeto}</strong>
+          <div className="mb-4 rounded-lg border-l-4 border-blue-600 bg-blue-50 p-4">
+            <div className="text-sm font-semibold text-blue-900">Projeto selecionado</div>
+            <div className="text-xl font-bold text-blue-800">{selectedProject.nome_projeto}</div>
+            <div className="text-sm text-blue-700">Autores: {selectedProject.nome_autores}</div>
+            <div className="text-sm text-blue-700">Tipo: {selectedProject.tipo_projeto}</div>
           </div>
         )}
 
@@ -181,27 +230,29 @@ export default function CustosPage() {
                 {/* Lista de Custos */}
                 <div className="bg-white rounded-lg shadow overflow-hidden">
                   <div className="p-6">
-                    <h2 className="text-lg font-semibold mb-4">Custos do Projeto</h2>
+                    <h2 className="text-gray-500 text-lg font-semibold mb-4">Custos do Projeto</h2>
                     {custos.length === 0 ? (
                       <p className="text-gray-500">Nenhum custo adicionado ainda.</p>
                     ) : (
                       <div className="space-y-3">
                         {custos.map(custo => (
-                              <div key={custo.id} className="border border-gray-100 rounded p-4 flex flex-col md:flex-row md:justify-between gap-3 md:items-center">
-                                <div className="flex-1">
-                                  <h3 className="font-semibold text-gray-800">{custo.equipamento || '—'}</h3>
-                                  <div className="mt-1 text-sm text-gray-600">Equipamento: R$ {parseFloat(custo.custos_equipamento || 0).toFixed(2)}</div>
-                                  {custo.insumos && (
-                                    <div className="mt-1 text-sm text-gray-600">Insumos: {custo.insumos} — R$ {parseFloat(custo.custos_insumos || 0).toFixed(2)}</div>
-                                  )}
-                                  {custo.created_at && <div className="mt-1 text-xs text-gray-400">Adicionado em: {new Date(custo.created_at).toLocaleString('pt-BR')}</div>}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="text-lg text-black font-semibold">R$ {(Number(custo.custos_equipamento || 0) + Number(custo.custos_insumos || 0)).toFixed(2)}</div>
-                                  <button onClick={() => handleDeleteCusto(custo.id)} className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded">🗑️ Deletar</button>
-                                </div>
+                          <div key={custo.id} className="border border-gray-100 rounded p-4 flex flex-col md:flex-row md:justify-between gap-3 md:items-start">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-800">Custo detalhado</h3>
+                              <div className="mt-2 text-sm text-gray-700">
+                                <div className="font-medium text-gray-900">Equipamentos</div>
+                                <pre className="whitespace-pre-wrap text-sm text-gray-600">{custo.equipamento || '—'}</pre>
+                                <div className="mt-2 font-medium text-gray-900">Insumos</div>
+                                <pre className="whitespace-pre-wrap text-sm text-gray-600">{custo.insumos || '—'}</pre>
                               </div>
-                            ))}
+                              <div className="mt-2 text-xs text-gray-400">Adicionado em: {custo.created_at ? new Date(custo.created_at).toLocaleString('pt-BR') : '—'}</div>
+                            </div>
+                            <div className="flex flex-col items-end gap-2">
+                              <div className="text-lg text-black font-semibold">R$ {(Number(custo.custos_equipamento || 0) + Number(custo.custos_insumos || 0)).toFixed(2)}</div>
+                              <button onClick={() => handleDeleteCusto(custo.id)} className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded">🗑️ Deletar</button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -221,52 +272,91 @@ export default function CustosPage() {
           overlayClassName="fixed inset-0 z-40"
           overlayStyle={{ backgroundColor: 'rgba(0,0,0,0.40)' }}
         >
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
-              <label className="block text-sm text-black font-medium mb-1">Equipamento</label>
-              <input
-                type="text"
-                name="equipamento"
-                value={formData.equipamento}
-                onChange={handleChange}
-                placeholder="Ex: Laptop"
-                className="w-full placeholder-gray-400 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm text-black font-medium">Equipamentos</label>
+                <button type="button" onClick={addEquipmentItem} className="text-sm text-blue-700 hover:underline">+ Adicionar equipamento</button>
+              </div>
+              <div className="space-y-3">
+                {formData.equipamentos.map((item, index) => (
+                  <div key={index} className="grid grid-cols-12 gap-3 items-end">
+                    <div className="col-span-5">
+                      <label className="block text-sm text-black font-medium mb-1">Item</label>
+                      <input
+                        type="text"
+                        value={item.name}
+                        onChange={(e) => updateEquipmentItem(index, 'name', e.target.value)}
+                        placeholder="Ex: Notebook"
+                        className="w-full placeholder-gray-400 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="col-span-5">
+                      <label className="block text-sm text-black font-medium mb-1">Preço (R$)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={item.price}
+                        onChange={(e) => updateEquipmentItem(index, 'price', e.target.value)}
+                        placeholder="0.00"
+                        className="w-full placeholder-gray-400 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="col-span-2 flex items-center mt-6">
+                      {formData.equipamentos.length > 1 && (
+                        <button type="button" onClick={() => removeEquipmentItem(index)} className="text-red-600 hover:text-red-800">Remover</button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
             <div>
-              <label className="block text-sm text-black font-medium mb-1">Custo do Equipamento (R$)</label>
-              <input
-                type="number"
-                step="0.01"
-                name="custos_equipamento"
-                value={formData.custos_equipamento}
-                onChange={handleChange}
-                placeholder="0.00"
-                className="w-full placeholder-gray-400 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm text-black font-medium">Insumos</label>
+                <button type="button" onClick={addInsumoItem} className="text-sm text-blue-700 hover:underline">+ Adicionar insumo</button>
+              </div>
+              <div className="space-y-3">
+                {formData.insumos.map((item, index) => (
+                  <div key={index} className="grid grid-cols-12 gap-3 items-end">
+                    <div className="col-span-5">
+                      <label className="block text-sm text-black font-medium mb-1">Item</label>
+                      <input
+                        type="text"
+                        value={item.name}
+                        onChange={(e) => updateInsumoItem(index, 'name', e.target.value)}
+                        placeholder="Ex: Parafuso"
+                        className="w-full placeholder-gray-400 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="col-span-5">
+                      <label className="block text-sm text-black font-medium mb-1">Preço (R$)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={item.price}
+                        onChange={(e) => updateInsumoItem(index, 'price', e.target.value)}
+                        placeholder="0.00"
+                        className="w-full placeholder-gray-400 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="col-span-2 flex items-center mt-6">
+                      {formData.insumos.length > 1 && (
+                        <button type="button" onClick={() => removeInsumoItem(index)} className="text-red-600 hover:text-red-800">Remover</button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div>
-              <label className="block text-sm text-black font-medium mb-1">Insumos</label>
-              <input
-                type="text"
-                name="insumos"
-                value={formData.insumos}
-                onChange={handleChange}
-                placeholder="Ex: Parafusos, Cabos"
-                className="w-full placeholder-gray-400 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-black font-medium mb-1">Custo dos Insumos (R$)</label>
-              <input
-                type="number"
-                step="0.01"
-                name="custos_insumos"
-                value={formData.custos_insumos}
-                onChange={handleChange}
-                placeholder="0.00"
-                className="w-full placeholder-gray-400 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+            <div className="rounded-lg bg-gray-50 border border-gray-200 p-4">
+              <div className="text-sm font-semibold text-gray-900">Resumo do Custo</div>
+              <div className="mt-2 text-sm text-gray-600">
+                Total equipamentos: R$ {formData.equipamentos.reduce((sum, item) => sum + Number(item.price || 0), 0).toFixed(2)}
+              </div>
+              <div className="mt-1 text-sm text-gray-600">
+                Total insumos: R$ {formData.insumos.reduce((sum, item) => sum + Number(item.price || 0), 0).toFixed(2)}
+              </div>
             </div>
           </div>
         </Modal>

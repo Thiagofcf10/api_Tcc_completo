@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthProvider';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Modal from '@/components/Modal';
+import AlunoMultiSelect from '@/components/AlunoMultiSelect';
 import api, { fetchWithAuth, fetchWithApiKey, getApiKey, getToken } from '@/lib/api';
 import Toast from '@/components/Toast';
 
@@ -19,13 +20,16 @@ export default function RegistrosPage() {
   const [toast, setToast] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRegistroId, setEditingRegistroId] = useState(null);
+  const [alunos, setAlunos] = useState([]);
   const [formData, setFormData] = useState({
     id_projeto: '',
     data_reuniao: '',
     lista_participantes: '',
     duracao_reuniao: '00:00:00',
     titulo_reuniao: '',
-    relatorio: ''
+    relatorio: '',
+    relatorio_edit_deadline: '',
+    relatorio_edit_allowed: ''
   });
   const [expandedRegistros, setExpandedRegistros] = useState(new Set());
 
@@ -44,10 +48,14 @@ export default function RegistrosPage() {
   const loadProjetos = async () => {
     setLoading(true);
     try {
-      const res = await fetchWithApiKey(`${api.getApiUrl()}/selectprojetos`);
-      setProjetos(res.data || []);
+      const [projetosRes, alunosRes] = await Promise.all([
+        fetchWithApiKey(`${api.getApiUrl()}/selectprojetos`),
+        fetchWithApiKey(`${api.getApiUrl()}/selectaluno`)
+      ]);
+      setProjetos(projetosRes.data || []);
+      setAlunos(alunosRes.data || []);
     } catch (err) {
-      setToast({ type: 'error', message: 'Erro ao carregar projetos' });
+      setToast({ type: 'error', message: 'Erro ao carregar dados' });
     } finally {
       setLoading(false);
     }
@@ -77,6 +85,14 @@ export default function RegistrosPage() {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleAllowedAlunosChange = (selectedIds) => {
+    const allowedValues = selectedIds.map(id => {
+      const found = alunos.find(a => String(a.id) === String(id));
+      return found ? String(found.id) : String(id);
+    });
+    setFormData(prev => ({ ...prev, relatorio_edit_allowed: allowedValues.join(',') }));
   };
 
   const handleAddRegistro = async () => {
@@ -203,8 +219,11 @@ export default function RegistrosPage() {
       <main className="flex-1 p-6">
         <h1 className="text-3xl font-bold mb-6 text-gray-800">📝 Registros de Reuniões</h1>
         {selectedProject && (
-          <div className="mb-4 inline-block px-3 py-1 rounded bg-blue-50 border border-blue-200 text-sm text-blue-700">
-            Projeto selecionado: <strong className="ml-1">{selectedProject.nome_projeto}</strong>
+          <div className="mb-4 rounded-lg border-l-4 border-blue-600 bg-blue-50 p-4">
+            <div className="text-sm font-semibold text-blue-900">Projeto selecionado</div>
+            <div className="text-xl font-bold text-blue-800">{selectedProject.nome_projeto}</div>
+            <div className="text-sm text-blue-700">Autores: {selectedProject.nome_autores}</div>
+            <div className="text-sm text-blue-700">Tipo: {selectedProject.tipo_projeto}</div>
           </div>
         )}
 
@@ -413,15 +432,13 @@ export default function RegistrosPage() {
               <p className="text-xs text-gray-500 mt-1">Se definido, apenas alunos listados poderão editar até essa data/hora.</p>
             </div>
             <div>
-              <label className="block text-sm text-black font-medium mb-1">Alunos permitidos (matrículas ou IDs, separados por vírgula)</label>
-              <input
-                type="text"
-                name="relatorio_edit_allowed"
-                value={formData.relatorio_edit_allowed || ''}
-                onChange={handleChange}
-                placeholder="ex: 2023001,2023002 ou 12,15"
-                className="w-full placeholder-gray-400 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <label className="block text-sm text-black font-medium mb-1">Alunos permitidos</label>
+              <AlunoMultiSelect
+                alunos={alunos}
+                value={(formData.relatorio_edit_allowed || '').split(',').map(v => v.trim()).filter(Boolean)}
+                onChange={handleAllowedAlunosChange}
               />
+              <p className="text-xs text-gray-500 mt-1">Selecione os alunos que poderão editar este relatório.</p>
             </div>
           </div>
         </Modal>

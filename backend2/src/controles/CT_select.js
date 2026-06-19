@@ -57,8 +57,14 @@ const getAreasAcademicas = wrapGetSimple(areas.getAreas, areas.getAreasAcademica
 const getArquivos = async (req, res) => {
   try {
     const projetoId = req.query && req.query.projeto_id;
+    const idMeuProjeto = req.query && req.query.id_meuprojeto;
+
     if (projetoId) {
-      const rows = await arquivos.getArquivos(projetoId);
+      const rows = await arquivos.getArquivos(projetoId, null);
+      return res.status(200).json({ message: 'Arquivos obtidos com sucesso', data: rows, total: rows.length });
+    }
+    if (idMeuProjeto) {
+      const rows = await arquivos.getArquivos(null, idMeuProjeto);
       return res.status(200).json({ message: 'Arquivos obtidos com sucesso', data: rows, total: rows.length });
     }
 
