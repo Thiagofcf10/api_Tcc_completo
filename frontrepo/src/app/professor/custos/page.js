@@ -234,25 +234,110 @@ export default function CustosPage() {
                     {custos.length === 0 ? (
                       <p className="text-gray-500">Nenhum custo adicionado ainda.</p>
                     ) : (
-                      <div className="space-y-3">
-                        {custos.map(custo => (
-                          <div key={custo.id} className="border border-gray-100 rounded p-4 flex flex-col md:flex-row md:justify-between gap-3 md:items-start">
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-gray-800">Custo detalhado</h3>
-                              <div className="mt-2 text-sm text-gray-700">
-                                <div className="font-medium text-gray-900">Equipamentos</div>
-                                <pre className="whitespace-pre-wrap text-sm text-gray-600">{custo.equipamento || '—'}</pre>
-                                <div className="mt-2 font-medium text-gray-900">Insumos</div>
-                                <pre className="whitespace-pre-wrap text-sm text-gray-600">{custo.insumos || '—'}</pre>
+                      <div className="space-y-4">
+                        {custos.map((custo, idx) => {
+                          // Parse equipamentos
+                          const equipamentos = (custo.equipamento || '')
+                            .split('\n')
+                            .map(line => line.trim())
+                            .filter(line => line.length > 0);
+                          
+                          // Parse insumos
+                          const insumos = (custo.insumos || '')
+                            .split('\n')
+                            .map(line => line.trim())
+                            .filter(line => line.length > 0);
+                          
+                          const totalEquip = Number(custo.custos_equipamento || 0);
+                          const totalInsum = Number(custo.custos_insumos || 0);
+                          const totalCusto = totalEquip + totalInsum;
+                          
+                          return (
+                            <div key={custo.id} className="border border-gray-200 rounded-lg p-5 bg-gradient-to-br from-gray-50 to-white hover:shadow-md transition">
+                              {/* Cabeçalho */}
+                              <div className="flex items-start justify-between mb-4">
+                                <div>
+                                  <div className="text-sm text-gray-500">Custo #{idx + 1}</div>
+                                  <div className="text-xs text-gray-400 mt-1">Adicionado: {custo.created_at ? new Date(custo.created_at).toLocaleDateString('pt-BR') : '—'}</div>
+                                </div>
+                                <button 
+                                  onClick={() => handleDeleteCusto(custo.id)} 
+                                  className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm font-medium transition"
+                                >
+                                  🗑️ Deletar
+                                </button>
                               </div>
-                              <div className="mt-2 text-xs text-gray-400">Adicionado em: {custo.created_at ? new Date(custo.created_at).toLocaleString('pt-BR') : '—'}</div>
+                              
+                              {/* Grid 2 colunas */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                {/* Equipamentos */}
+                                <div className="bg-white rounded border border-blue-100 p-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-lg">🔧</span>
+                                    <div>
+                                      <div className="text-sm font-semibold text-gray-900">Equipamentos</div>
+                                      <div className="text-xs text-gray-500">{equipamentos.length} item{equipamentos.length !== 1 ? 's' : ''}</div>
+                                    </div>
+                                  </div>
+                                  <div className="space-y-1.5">
+                                    {equipamentos.length > 0 ? (
+                                      equipamentos.map((item, i) => (
+                                        <div key={i} className="text-xs text-gray-700 flex justify-between">
+                                          <span>• {item.replace(/\s*-\s*R\$.*$/, '').trim()}</span>
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <div className="text-xs text-gray-400">Nenhum equipamento</div>
+                                    )}
+                                  </div>
+                                  <div className="mt-3 pt-3 border-t border-blue-50">
+                                    <div className="text-sm font-semibold text-blue-600">R$ {totalEquip.toFixed(2)}</div>
+                                    <div className="text-xs text-gray-500">Total equipamentos</div>
+                                  </div>
+                                </div>
+                                
+                                {/* Insumos */}
+                                <div className="bg-white rounded border border-green-100 p-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-lg">📦</span>
+                                    <div>
+                                      <div className="text-sm font-semibold text-gray-900">Insumos</div>
+                                      <div className="text-xs text-gray-500">{insumos.length} item{insumos.length !== 1 ? 's' : ''}</div>
+                                    </div>
+                                  </div>
+                                  <div className="space-y-1.5">
+                                    {insumos.length > 0 ? (
+                                      insumos.map((item, i) => (
+                                        <div key={i} className="text-xs text-gray-700 flex justify-between">
+                                          <span>• {item.replace(/\s*-\s*R\$.*$/, '').trim()}</span>
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <div className="text-xs text-gray-400">Nenhum insumo</div>
+                                    )}
+                                  </div>
+                                  <div className="mt-3 pt-3 border-t border-green-50">
+                                    <div className="text-sm font-semibold text-green-600">R$ {totalInsum.toFixed(2)}</div>
+                                    <div className="text-xs text-gray-500">Total insumos</div>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Rodapé - Total */}
+                              <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded p-3 border border-blue-100">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <div className="text-xs text-gray-600">Custo Total</div>
+                                    <div className="text-xs text-gray-500 mt-0.5">{equipamentos.length + insumos.length} itens</div>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="text-2xl font-bold text-gray-900">R$ {totalCusto.toFixed(2)}</div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex flex-col items-end gap-2">
-                              <div className="text-lg text-black font-semibold">R$ {(Number(custo.custos_equipamento || 0) + Number(custo.custos_insumos || 0)).toFixed(2)}</div>
-                              <button onClick={() => handleDeleteCusto(custo.id)} className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded">🗑️ Deletar</button>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>

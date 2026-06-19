@@ -92,11 +92,15 @@ const atualizarArquivo = async (id, arquivo, file) => {
     try {
       const [rows] = await connection.execute('SELECT caminho_arquivo FROM arquivos WHERE id = ?', [id]);
       if (rows && rows.length > 0) {
-        const oldPath = rows[0].caminho_arquivo;
-        if (oldPath) {
+        const oldFilename = rows[0].caminho_arquivo;
+        if (oldFilename) {
           const fs = require('fs');
+          const path = require('path');
           try {
-            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+            // Se apenas o nome do arquivo está salvo, construir o caminho completo
+            const uploadsDir = path.join(__dirname, '../../uploads');
+            const oldFilepath = path.join(uploadsDir, oldFilename);
+            if (fs.existsSync(oldFilepath)) fs.unlinkSync(oldFilepath);
           } catch (e) {
             // log but continue
             console.error('Erro removendo arquivo antigo:', e);
@@ -126,7 +130,8 @@ const atualizarArquivo = async (id, arquivo, file) => {
   // file fields (if new file uploaded)
   if (file) {
     fields.push('nome_arquivo = ?'); params.push(file.originalname || null);
-    fields.push('caminho_arquivo = ?'); params.push(file.path || null);
+    // Salvar apenas o nome do arquivo, não o caminho completo
+    fields.push('caminho_arquivo = ?'); params.push(file.filename || null);
     fields.push('tipo_arquivo = ?'); params.push(file.mimetype || null);
     fields.push('tamanho_arquivo = ?'); params.push(file.size || 0);
   }

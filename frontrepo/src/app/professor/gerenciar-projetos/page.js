@@ -125,7 +125,15 @@ export default function GerenciarProjetosPage() {
       setToast({ type: 'success', message: 'Projeto deletado' });
       loadProjetos();
     } catch (err) {
-      const msg = (err && err.message) ? err.message : 'Erro ao deletar projeto';
+      let msg = 'Erro ao deletar projeto';
+      if (err && err.message) {
+        // Verificar se é erro de constraint de chave estrangeira
+        if (err.message.includes('Não é possível deletar este registro porque possui dados vinculados')) {
+          msg = '⚠️ Não é possível deletar este projeto. Ele possui dados vinculados como arquivos, custos ou registros. Remova esses dados antes.';
+        } else {
+          msg = err.message;
+        }
+      }
       setToast({ type: 'error', message: msg });
     } finally {
       setBusy(false);

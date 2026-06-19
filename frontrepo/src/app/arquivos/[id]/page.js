@@ -35,7 +35,7 @@ export default function ArquivoDetailPage() {
       if (!arquivo) return;
       if (!isTextFile(arquivo.caminho_arquivo, arquivo.tipo_mime || arquivo.mimetype)) return;
       try {
-        const url = downloadLink(arquivo.caminho_arquivo);
+        const url = previewLink(arquivo.caminho_arquivo);
         const res = await fetch(url);
         const txt = await res.text();
         if (!mounted) return;
@@ -55,6 +55,13 @@ export default function ArquivoDetailPage() {
     const parts = caminho.split('/');
     const filename = parts[parts.length - 1];
     return `${api.getApiUrl()}/downloadarquivo/${encodeURIComponent(filename)}`;
+  };
+
+  const previewLink = (caminho) => {
+    if (!caminho) return '#';
+    const parts = caminho.split('/');
+    const filename = parts[parts.length - 1];
+    return `${api.getApiUrl()}/previewarquivo/${encodeURIComponent(filename)}`;
   };
 
   const formatBytes = (bytes) => {
@@ -87,7 +94,7 @@ export default function ArquivoDetailPage() {
       if (!arquivo || !isPDF(arquivo.caminho_arquivo)) { setPdfViewable(null); return; }
       setPdfViewable(null);
       try {
-        const url = downloadLink(arquivo.caminho_arquivo);
+        const url = previewLink(arquivo.caminho_arquivo);
         const res = await fetch(url, { method: 'GET', cache: 'no-cache' });
         if (!mounted) return;
         const ct = res.headers.get('content-type') || '';
@@ -117,7 +124,7 @@ export default function ArquivoDetailPage() {
               <div className="flex items-start gap-6">
                 <div className="w-48 flex-shrink-0">
                   {isImage(arquivo.caminho_arquivo) ? (
-                    <img src={downloadLink(arquivo.caminho_arquivo)} alt={arquivo.nome_arquivo} className="w-48 h-48 object-cover rounded" />
+                    <img src={previewLink(arquivo.caminho_arquivo)} alt={arquivo.nome_arquivo} className="w-48 h-48 object-cover rounded" />
                   ) : isPDF(arquivo.caminho_arquivo) ? (
                     <div className="w-48 h-48 bg-gray-100 rounded flex items-center justify-center text-gray-500">PDF</div>
                   ) : (
@@ -152,12 +159,12 @@ export default function ArquivoDetailPage() {
                   pdfViewable === null ? (
                     <div className="p-6 rounded border bg-yellow-50 text-yellow-800">Verificando pré-visualização do PDF...</div>
                   ) : pdfViewable === true ? (
-                    <iframe title="PDF preview" src={downloadLink(arquivo.caminho_arquivo)} className="w-full h-[650px] rounded border" />
+                    <iframe title="PDF preview" src={previewLink(arquivo.caminho_arquivo)} className="w-full h-[650px] rounded border" />
                   ) : (
                     <div className="p-6 rounded border bg-gray-50 text-gray-600">Pré-visualização do PDF não está disponível neste navegador/servidor. Use o botão de download para obter o arquivo.</div>
                   )
                 ) : isImage(arquivo.caminho_arquivo) ? (
-                  <img src={downloadLink(arquivo.caminho_arquivo)} alt={arquivo.nome_arquivo} className="w-full rounded border" />
+                  <img src={previewLink(arquivo.caminho_arquivo)} alt={arquivo.nome_arquivo} className="w-full rounded border" />
                 ) : isTextFile(arquivo.caminho_arquivo, arquivo.tipo_mime || arquivo.mimetype) ? (
                   <div className="p-4 rounded border bg-gray-50">
                     {fileContent === null ? (

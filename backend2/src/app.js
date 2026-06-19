@@ -105,6 +105,26 @@ app.get('/debug/cors', (req, res) => {
   }
 });
 
+// Rota para preview de arquivos (visualização no navegador)
+app.get('/previewarquivo/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const filepath = path.join(__dirname, '..', 'uploads', filename);
+  
+  // Segurança: verificar se o arquivo está dentro da pasta uploads
+  const realPath = path.resolve(filepath);
+  const uploadsDir = path.resolve(path.join(__dirname, '..', 'uploads'));
+  
+  if (!realPath.startsWith(uploadsDir)) {
+    return res.status(403).json({ error: 'Acesso negado' });
+  }
+  
+  res.sendFile(filepath, (err) => {
+    if (err && !res.headersSent) {
+      res.status(404).json({ error: 'Arquivo não encontrado', filename });
+    }
+  });
+});
+
 // Rota para download de arquivos
 app.get('/downloadarquivo/:filename', (req, res) => {
   const filename = req.params.filename;

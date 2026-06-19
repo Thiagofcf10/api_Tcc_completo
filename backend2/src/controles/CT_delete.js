@@ -16,6 +16,10 @@ const wrapDelete = (fn) => async (req, res) => {
         await fn(id);
         return res.status(204).send();
     } catch (err) {
+        // Detectar erro de foreign key constraint
+        if (err.message && err.message.includes('FOREIGN KEY constraint fails')) {
+            return res.status(409).json({ error: 'Não é possível deletar este registro porque possui dados vinculados em outras tabelas (arquivos, custos, registros, etc.)' });
+        }
         return res.status(500).json({ error: err.message });
     }
 };

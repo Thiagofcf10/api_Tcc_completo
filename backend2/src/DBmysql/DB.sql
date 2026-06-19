@@ -198,4 +198,9 @@ VALUES (1, 'Área Acadêmica de Exemplo', 'teste');
 -- Inserir código de matrícula válido para professores (conforme solicitado)
 INSERT INTO codigo_matricula_pro (codigo, matricula_valida)
 VALUES ('202010101122', 1);
-```
+
+-- Criar/Atualizar usuário com permissões para conexão remota
+CREATE USER IF NOT EXISTS 'ifpa'@'%' IDENTIFIED BY 'Admin_repo@';
+GRANT ALL PRIVILEGES ON repo_ifpa.* TO 'ifpa'@'%';
+GRANT ALL PRIVILEGES ON repo_ifpa.* TO 'ifpa'@'localhost';
+FLUSH PRIVILEGES;

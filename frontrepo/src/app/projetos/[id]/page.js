@@ -164,44 +164,97 @@ export default function ProjetoDetailPage() {
               {custos.length === 0 ? (
                 <p className="text-gray-500">Nenhum custo registrado para este projeto.</p>
               ) : (
-                <div>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full table-auto border-collapse">
-                      <thead>
-                        <tr className="bg-gray-100">
-                          <th className="text-left px-4 py-2 text-sm text-gray-600">Item</th>
-                          <th className="text-left px-4 py-2 text-sm text-gray-600">Equipamento</th>
-                          <th className="text-left px-4 py-2 text-sm text-gray-600">Insumos</th>
-                          <th className="text-right px-4 py-2 text-sm text-gray-600">Valor Equip.</th>
-                          <th className="text-right px-4 py-2 text-sm text-gray-600">Valor Insumos</th>
-                          <th className="text-right px-4 py-2 text-sm text-gray-600">Total</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {custos.map((c, idx) => {
-                          const equipamento = c.equipamento || '';
-                          const custos_equipamento = Number(c.custos_equipamento || 0);
-                          const insumos = c.insumos || '';
-                          const custos_insumos = Number(c.custos_insumos || 0);
-                          const total = custos_equipamento + custos_insumos;
-                          return (
-                            <tr key={c.id} className="border-b">
-                              <td className="px-4 py-3 text-sm text-gray-500">{idx + 1}</td>
-                              <td className="px-4 py-3 text-sm text-gray-500" >{equipamento || '—'}</td>
-                              <td className="px-4 py-3 text-sm text-gray-500">{insumos || '—'}</td>
-                              <td className="px-4 py-3 text-sm text-gray-500 text-right">R$ {custos_equipamento.toFixed(2)}</td>
-                              <td className="px-4 py-3 text-sm text-gray-500 text-right">R$ {custos_insumos.toFixed(2)}</td>
-                              <td className="px-4 py-3 text-sm text-gray-500 text-right font-semibold">R$ {total.toFixed(2)}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className="mt-4 flex justify-between items-center">
-                    <div className="text-sm text-gray-600">Total de itens: <strong>{custos.length}</strong></div>
-                    <div className="text-right text-gray-700 font-semibold">Total do projeto: R$ {custos.reduce((acc, c) => acc + (Number(c.custos_equipamento || 0) + Number(c.custos_insumos || 0)), 0).toFixed(2)}</div>
+                <div className="space-y-4">
+                  {custos.map((c, idx) => {
+                    // Parse equipamentos e insumos
+                    const equipamentos = (c.equipamento || '')
+                      .split('\n')
+                      .map(line => line.trim())
+                      .filter(line => line.length > 0);
+                    
+                    const insumos = (c.insumos || '')
+                      .split('\n')
+                      .map(line => line.trim())
+                      .filter(line => line.length > 0);
+                    
+                    const custos_equipamento = Number(c.custos_equipamento || 0);
+                    const custos_insumos = Number(c.custos_insumos || 0);
+                    const total = custos_equipamento + custos_insumos;
+                    
+                    return (
+                      <div key={c.id} className="border border-gray-200 rounded-lg p-5 bg-gradient-to-br from-gray-50 to-white hover:shadow-md transition">
+                        {/* Cabeçalho */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div>
+                            <div className="font-semibold text-gray-900">Custo #{idx + 1}</div>
+                            <div className="text-xs text-gray-500 mt-1">Total: <span className="font-semibold text-gray-900">R$ {total.toFixed(2)}</span></div>
+                          </div>
+                        </div>
+                        
+                        {/* Grid 2 colunas */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* Equipamentos */}
+                          <div className="bg-white rounded border border-blue-100 p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="text-lg">🔧</span>
+                              <div>
+                                <div className="text-sm font-semibold text-gray-900">Equipamentos</div>
+                                <div className="text-xs text-gray-500">{equipamentos.length} item{equipamentos.length !== 1 ? 's' : ''}</div>
+                              </div>
+                            </div>
+                            <div className="space-y-1.5 text-xs">
+                              {equipamentos.length > 0 ? (
+                                equipamentos.map((item, i) => (
+                                  <div key={i} className="text-gray-700">• {item.replace(/\s*-\s*R\$.*$/, '').trim()}</div>
+                                ))
+                              ) : (
+                                <div className="text-gray-400">Nenhum equipamento</div>
+                              )}
+                            </div>
+                            <div className="mt-3 pt-3 border-t border-blue-50">
+                              <div className="text-sm font-semibold text-blue-600">R$ {custos_equipamento.toFixed(2)}</div>
+                            </div>
+                          </div>
+                          
+                          {/* Insumos */}
+                          <div className="bg-white rounded border border-green-100 p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="text-lg">📦</span>
+                              <div>
+                                <div className="text-sm font-semibold text-gray-900">Insumos</div>
+                                <div className="text-xs text-gray-500">{insumos.length} item{insumos.length !== 1 ? 's' : ''}</div>
+                              </div>
+                            </div>
+                            <div className="space-y-1.5 text-xs">
+                              {insumos.length > 0 ? (
+                                insumos.map((item, i) => (
+                                  <div key={i} className="text-gray-700">• {item.replace(/\s*-\s*R\$.*$/, '').trim()}</div>
+                                ))
+                              ) : (
+                                <div className="text-gray-400">Nenhum insumo</div>
+                              )}
+                            </div>
+                            <div className="mt-3 pt-3 border-t border-green-50">
+                              <div className="text-sm font-semibold text-green-600">R$ {custos_insumos.toFixed(2)}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  
+                  {/* Resumo Total */}
+                  <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg p-4 border border-indigo-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm text-gray-700 font-semibold">Resumo Total do Projeto</div>
+                        <div className="text-xs text-gray-600 mt-1">{custos.length} custo{custos.length !== 1 ? 's' : ''} registrado{custos.length !== 1 ? 's' : ''}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm text-gray-600">Total gasto</div>
+                        <div className="text-2xl font-bold text-indigo-600">R$ {custos.reduce((acc, c) => acc + (Number(c.custos_equipamento || 0) + Number(c.custos_insumos || 0)), 0).toFixed(2)}</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

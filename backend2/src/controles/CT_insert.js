@@ -115,11 +115,14 @@ const inserirCodigoMatriculaPro = async (req, res) => {
 const connection = require('../DBmysql/conectaraoDB');
 const inserirArquivo = async (req, res) => {
     try {
-        // Ensure id_meuprojeto exists BEFORE attempting insert to avoid FK failures
+        // Se projeto_id foi enviado, usar ele; caso contrário, procurar/criar id_meuprojeto
+        const projetoId = req.body.projeto_id ? Number(req.body.projeto_id) : null;
+        
         const userId = req.user?.id || null;
         let idMeu = req.body.id_meuprojeto ? Number(req.body.id_meuprojeto) : null;
 
-        if (!idMeu && userId) {
+        // Só criar/procurar meusprojeto se não tiver projeto_id
+        if (!projetoId && !idMeu && userId) {
             const [rows] = await connection.execute('SELECT id FROM meusprojetos WHERE usuarios = ? LIMIT 1', [userId]);
             if (rows && rows.length > 0) {
                 idMeu = rows[0].id;
@@ -141,11 +144,13 @@ const inserirArquivo = async (req, res) => {
         // Se houver arquivo, adicionar informações do arquivo ao body
         if (req.file) {
             req.body.nome_arquivo = req.file.originalname;
-            req.body.caminho_arquivo = req.file.path;
+            // Salvar apenas o nome do arquivo, não o caminho completo
+            req.body.caminho_arquivo = req.file.filename;
             req.body.tipo_arquivo = req.file.mimetype;
             req.body.tamanho_arquivo = req.file.size;
         }
 
+        if (projetoId) req.body.projeto_id = projetoId;
         if (idMeu) req.body.id_meuprojeto = idMeu;
 
         const result = await arquivos.inserirArquivo(req.body);
