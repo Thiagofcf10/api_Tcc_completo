@@ -10,6 +10,9 @@ export default function ArquivoDetailPage() {
   const router = useRouter();
   const id = params?.id;
   const [arquivo, setArquivo] = useState(null);
+  const [projeto, setProjeto] = useState(null);
+  const [professorNome, setProfessorNome] = useState(null);
+  const [alunoNomes, setAlunoNomes] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,6 +23,37 @@ export default function ArquivoDetailPage() {
         const resp = await fetchWithApiKey(`${api.getApiUrl()}/selectarquivos/${id}`);
         // resp.data is the arquivo object according to our new endpoint
         setArquivo(resp.data || null);
+        // load projeto and related info if available
+        if (resp.data && resp.data.projeto_id) {
+          try {
+            const projResp = await fetchWithApiKey(`${api.getApiUrl()}/selectprojetos/${resp.data.projeto_id}`);
+            const p = projResp && projResp.data ? projResp.data : null;
+            setProjeto(p || null);
+
+            // resolve alunos participantes from projeto (nome_autores or matricula_alunos)
+            try {
+              if (p && p.nome_autores && typeof p.nome_autores === 'string' && p.nome_autores.trim() !== '') {
+                const nomes = p.nome_autores.split(',').map(s => s.trim()).filter(Boolean);
+                setAlunoNomes(nomes);
+              } else if (p && p.matricula_alunos) {
+                const alunoIds = String(p.matricula_alunos).split(',').map(x => x.trim()).filter(Boolean);
+                if (alunoIds.length > 0) {
+                  const alunosResp = await fetchWithApiKey(`${api.getApiUrl()}/selectaluno`);
+                  const alunosData = alunosResp && alunosResp.data ? alunosResp.data : [];
+                  const nomes = alunoIds.map(idTok => {
+                    const found = alunosData.find(a => String(a.id) === String(idTok) || String(a.matricula_aluno || a.matricula) === String(idTok));
+                    return found ? (found.nome_aluno || found.nome) : `Aluno ${idTok}`;
+                  });
+                  setAlunoNomes(nomes);
+                }
+              }
+            } catch (e) {
+              // ignore aluno load errors
+            }
+          } catch (e) {
+            // ignore projeto load errors
+          }
+        }
       } catch (e) {
         console.error('Erro ao carregar arquivo:', e);
       } finally {
@@ -49,6 +83,42 @@ export default function ArquivoDetailPage() {
     loadContent();
     return () => { mounted = false; };
   }, [arquivo]);
+
+  // resolve professor who uploaded the file (prefer arquivo.usuario_id, fallback to projeto.orientador)
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (!arquivo) return;
+      const apiKey = api.getApiKey();
+      try {
+        if (arquivo.usuario_id) {
+          try {
+            const profResp = await fetchWithApiKey(`${api.getApiUrl()}/selectprofessor/${arquivo.usuario_id}?api_key=${apiKey}`);
+            const profData = profResp && profResp.data ? profResp.data : null;
+            const nome = profData && (profData.nome_professor || profData.nome) ? (profData.nome_professor || profData.nome) : null;
+            if (mounted) setProfessorNome(nome || String(arquivo.usuario_id));
+            return;
+          } catch (e) {
+            // ignore and fallback to projeto
+          }
+        }
+
+        if (projeto && projeto.orientador) {
+          try {
+            const profResp = await fetchWithApiKey(`${api.getApiUrl()}/selectprofessor/${projeto.orientador}?api_key=${apiKey}`);
+            const profData = profResp && profResp.data ? profResp.data : null;
+            const nome = profData && (profData.nome_professor || profData.nome) ? (profData.nome_professor || profData.nome) : null;
+            if (mounted) setProfessorNome(nome || String(projeto.orientador));
+          } catch (e) {
+            if (mounted) setProfessorNome(projeto.orientador || null);
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+    })();
+    return () => { mounted = false; };
+  }, [arquivo, projeto]);
 
   const downloadLink = (caminho) => {
     if (!caminho) return '#';
@@ -185,9 +255,10 @@ export default function ArquivoDetailPage() {
                 <h3 className="text-sm text-gray-500">Detalhes do arquivo</h3>
                 <div className="mt-2 text-sm text-gray-800 space-y-1">
                   <div><strong>Nome:</strong> {arquivo.nome_arquivo || '—'}</div>
-                  <div><strong>Enviado por:</strong> {arquivo.usuario_id || arquivo.usuario || '—'}</div>
+                  <div><strong>Enviado por:</strong> {professorNome || arquivo.usuario || arquivo.usuario_id || '—'}</div>
                   <div><strong>Data:</strong> {arquivo.created_at ? new Date(arquivo.created_at).toLocaleString('pt-BR') : '—'}</div>
-                  <div><strong>Tamanho:</strong> {formatBytes(arquivo.tamanho || arquivo.size || arquivo.size_bytes || arquivo.bytes)}</div>
+                  <div><strong>Tamanho:</strong> {formatBytes(arquivo.tamanho_arquivo || arquivo.tamanho || arquivo.size || arquivo.size_bytes || arquivo.bytes)}</div>
+                  <div><strong>Alunos participantes:</strong> {alunoNomes && alunoNomes.length > 0 ? alunoNomes.join(', ') : '—'}</div>
                 </div>
               </div>
 

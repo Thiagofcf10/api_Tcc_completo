@@ -94,8 +94,11 @@ export default function LandingPage() {
               <Link href="/register" className="px-6 py-3 bg-white text-cyan-600 rounded-lg hover:bg-gray-100 transition-colors font-semibold">
                 Registrar Agora
               </Link>
-              <Link href="/login" className="px-6 py-3 bg-white bg-opacity-20 border-2 border-white text-white rounded-lg hover:bg-opacity-30 transition-colors font-semibold">
+              <Link href="/login" className="px-6 py-3 bg-white bg-opacity-20 border-2 border-white text-cyan-600 rounded-lg hover:bg-opacity-30 transition-colors font-semibold">
                 Já tenho conta
+              </Link>
+              <Link href="/avaliacao" className="px-6 py-3 bg-white bg-opacity-20 border-2 border-white text-cyan-600  rounded-lg hover:bg-opacity-30 transition-colors font-semibold">
+                Avaliar o site
               </Link>
             </div>
           </section>
@@ -111,6 +114,9 @@ export default function LandingPage() {
               </Link>
               <Link href="/perfil" className="px-6 py-3 bg-white bg-opacity-20 border-2 border-white text-cyan-600 rounded-lg hover:bg-opacity-30 transition-colors font-semibold">
                 Meu Perfil
+              </Link>
+              <Link href="/avaliacao" className="px-6 py-3 bg-white bg-opacity-20 border-2 border-white text-cyan-600  rounded-lg hover:bg-opacity-30 transition-colors font-semibold">
+                Avaliar o site
               </Link>
             </div>
           </section>

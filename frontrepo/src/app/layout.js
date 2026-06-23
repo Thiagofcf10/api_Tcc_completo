@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "../context/AuthProvider";
 import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
+import VlibrasWidget from '@/components/VlibrasWidget';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({ children }) {
             {children}
           </main>
           <Footer />
+          <VlibrasWidget />
         </AuthProvider>
       </body>
     </html>

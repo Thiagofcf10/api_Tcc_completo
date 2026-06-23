@@ -29,7 +29,7 @@ export default function TopNav() {
 
   return (
     <div className="w-full bg-gradient-to-r from-cyan-700 to-cyan-900 border-b-4 border-green-500 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+      <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row items-start md:items-center justify-center md:justify-between gap-3 text-center md:text-left">
         {/* Logo e Título */}
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 md:w-14 md:h-14 bg-green-500 rounded-lg flex items-center justify-center text-white text-xl md:text-2xl font-bold shadow-md hover:shadow-lg transition-shadow">
@@ -57,15 +57,12 @@ export default function TopNav() {
           </button>
         </div>
 
-        {/* Mobile menu button */}
-        <div className="flex items-center gap-2 md:hidden">
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="text-2xl p-2 bg-white bg-opacity-10 rounded"
-            aria-label="Menu"
-          >
-            ☰
-          </button>
+        {/* Mobile header shortcuts: simpler on mobile */}
+        <div className="flex items-center gap-2 md:hidden justify-center">
+          <button onClick={goBack} className="px-3 py-1 bg-white bg-opacity-20 text-black rounded transition-all text-sm">← Voltar</button>
+          <button onClick={goHome} className="px-3 py-1 bg-white bg-opacity-20 text-black rounded transition-all text-sm">🏠 Principal</button>
+          <button onClick={() => router.push('/home')} className="px-3 py-1 bg-white bg-opacity-20 text-black rounded transition-all text-sm">Ir ao Painel</button>
+          <button onClick={() => router.push('/projetos')} className="px-3 py-1 bg-white bg-opacity-20 text-black rounded transition-all text-sm">📋 Projetos</button>
         </div>
 
         {/* Área de Autenticação */}
@@ -132,17 +129,49 @@ export default function TopNav() {
         </div>
       </div>
 
-      {/* Mobile dropdown menu */}
+      {/* Mobile sidebar drawer */}
       {menuOpen && (
-        <div className="md:hidden bg-cyan-800 text-white px-4 py-3 border-t border-cyan-600">
-          <div className="flex flex-col gap-2">
-            <button onClick={goBack} className="text-left">← Voltar</button>
-            <button onClick={goHome} className="text-left">🏠 Principal</button>
-            <Link href="/perfil" className="text-left">👤 Perfil</Link>
-            <Link href="/projetos" className="text-left">📋 Projetos</Link>
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          {/* Sidebar */}
+          <div className="w-64 bg-cyan-900 text-white p-4 overflow-auto">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-lg font-semibold">Menu</div>
+              <button onClick={() => setMenuOpen(false)} aria-label="Fechar menu" className="p-2">✕</button>
+            </div>
+
+            <nav className="flex flex-col gap-2 text-sm">
+              <button onClick={() => { setMenuOpen(false); goBack(); }} className="w-full text-left px-3 py-2 rounded hover:bg-cyan-800">← Voltar</button>
+              <button onClick={() => { setMenuOpen(false); goHome(); }} className="w-full text-left px-3 py-2 rounded hover:bg-cyan-800">🏠 Principal</button>
+              <Link href="/projetos" onClick={() => setMenuOpen(false)} className="block w-full px-3 py-2 rounded hover:bg-cyan-800">📋 Projetos</Link>
+              <Link href="/perfil" onClick={() => setMenuOpen(false)} className="block w-full px-3 py-2 rounded hover:bg-cyan-800">👤 Perfil</Link>
+
+              {user ? (
+                <>
+                  <button onClick={() => { setMenuOpen(false); router.push('/home'); }} className="w-full text-left px-3 py-2 rounded hover:bg-cyan-800">Ir ao Painel</button>
+                  <button onClick={() => { setMenuOpen(false); handleLogout(); }} className="w-full text-left px-3 py-2 rounded hover:bg-rose-700">Sair</button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" onClick={() => setMenuOpen(false)} className="block w-full px-3 py-2 rounded hover:bg-cyan-800">Entrar</Link>
+                  <Link href="/register" onClick={() => setMenuOpen(false)} className="block w-full px-3 py-2 rounded bg-green-500 text-white hover:bg-green-600">Registrar</Link>
+                </>
+              )}
+
+              {user?.tipo === 'professor' && (
+                <div className="mt-3 border-t border-cyan-800 pt-3">
+                  <Link href="/professor/criar-projeto" onClick={() => setMenuOpen(false)} className="block w-full px-3 py-2 rounded hover:bg-cyan-800">➕ Criar Projeto</Link>
+                  <Link href="/professor/gerenciar-projetos" onClick={() => setMenuOpen(false)} className="block w-full px-3 py-2 rounded hover:bg-cyan-800">🗂️ Gerenciar Projetos</Link>
+                  <Link href="/professor/arquivos" onClick={() => setMenuOpen(false)} className="block w-full px-3 py-2 rounded hover:bg-cyan-800">📁 Arquivos</Link>
+                </div>
+              )}
+            </nav>
           </div>
+
+          {/* Overlay to close drawer */}
+          <div className="flex-1 bg-black/40" onClick={() => setMenuOpen(false)} />
         </div>
       )}
     </div>
   );
 }
+

@@ -12,6 +12,7 @@ export default function Footer() {
           <ul className="mt-2 space-y-1 text-xs md:text-sm text-gray-300">
             <li><a href="/sobre" className="hover:underline">Sobre</a></li>
             <li><a href="/politica-privacidade" className="hover:underline">Política de Privacidade</a></li>
+            <li><a href="/avaliacao" className="hover:underline">Avaliação do site</a></li>
           </ul>
         </div>
 
