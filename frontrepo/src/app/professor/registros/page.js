@@ -33,6 +33,8 @@ export default function RegistrosPage() {
   });
   const [expandedRegistros, setExpandedRegistros] = useState(new Set());
 
+  const professorRelatorioTemplate = `Tema da reunião:\nObjetivo da reunião:\nAtividades para realizar:\nObservações:\n`;
+
   useEffect(() => {
     if (!token) {
       router.push('/login');
@@ -146,7 +148,7 @@ export default function RegistrosPage() {
         lista_participantes: '',
         duracao_reuniao: '00:00:00',
         titulo_reuniao: '',
-        relatorio: ''
+        relatorio: professorRelatorioTemplate
       });
       setModalOpen(false);
       setEditingRegistroId(null);
@@ -171,14 +173,14 @@ export default function RegistrosPage() {
     }
   };
 
-  const handleDownloadRelatorio = async (projetoId) => {
+  const handleDownloadRelatorio = async (projetoId, format = 'txt') => {
     if (!projetoId) {
       setToast({ type: 'error', message: 'Selecione um projeto antes de baixar o relatório' });
       return;
     }
 
     try {
-      const url = `${api.getApiUrl()}/selectregistros_txt?projeto_id=${projetoId}`;
+      const url = `${api.getApiUrl()}/selectregistros_txt?projeto_id=${projetoId}&formato=${format}`;
       const token = getToken();
       const res = await fetch(url, {
         headers: {
@@ -261,19 +263,47 @@ export default function RegistrosPage() {
               <>
                 {/* Botão de adicionar */}
                 <button
-                  onClick={() => setModalOpen(true)}
+                  onClick={() => {
+                    setEditingRegistroId(null);
+                    setFormData({
+                      id_projeto: selectedProjetoId,
+                      data_reuniao: '',
+                      lista_participantes: '',
+                      duracao_reuniao: '00:00:00',
+                      titulo_reuniao: '',
+                      relatorio: professorRelatorioTemplate,
+                      relatorio_edit_deadline: '',
+                      relatorio_edit_allowed: ''
+                    });
+                    setModalOpen(true);
+                  }}
                   className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
                 >
                   ➕ Registrar Nova Reunião
                 </button>
 
                 {/* Botão de baixar relatório geral do projeto */}
-                <button
-                  onClick={() => handleDownloadRelatorio(selectedProjetoId)}
-                  className="ml-3 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold"
-                >
-                  ⬇️ Baixar Relatório do Projeto
-                </button>
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <span className="text-sm text-gray-700">Baixar relatório geral do projeto:</span>
+                  <button
+                    onClick={() => handleDownloadRelatorio(selectedProjetoId, 'txt')}
+                    className="rounded-lg border border-blue-500 bg-blue-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-600"
+                  >
+                    TXT
+                  </button>
+                  <button
+                    onClick={() => handleDownloadRelatorio(selectedProjetoId, 'pdf')}
+                    className="rounded-lg border border-red-500 bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600"
+                  >
+                    PDF
+                  </button>
+                  <button
+                    onClick={() => handleDownloadRelatorio(selectedProjetoId, 'doc')}
+                    className="rounded-lg border border-amber-500 bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600"
+                  >
+                    DOC
+                  </button>
+                </div>
 
                 {/* Lista de Registros */}
                 <div className="bg-white rounded-lg shadow p-6">
@@ -324,7 +354,7 @@ export default function RegistrosPage() {
                                     lista_participantes: registro.lista_participantes || '',
                                     duracao_reuniao: registro.duracao_reuniao || '00:00:00',
                                     titulo_reuniao: registro.titulo_reuniao || '',
-                                    relatorio: registro.relatorio || '',
+                                    relatorio: registro.relatorio || professorRelatorioTemplate,
                                     relatorio_edit_deadline: registro.relatorio_edit_deadline || '',
                                     relatorio_edit_allowed: registro.relatorio_edit_allowed || ''
                                   });
@@ -415,8 +445,8 @@ export default function RegistrosPage() {
                 name="relatorio"
                 value={formData.relatorio}
                 onChange={handleChange}
-                placeholder="Escreva o relatório da reunião aqui"
-                rows="4"
+                placeholder="Tema da reunião:\nObjetivo da reunião:\nAtividades para realizar:\nObservações:\n"
+                rows="6"
                 className="w-full placeholder-gray-400 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>

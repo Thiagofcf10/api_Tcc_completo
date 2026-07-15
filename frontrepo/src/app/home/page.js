@@ -18,11 +18,14 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Always load public projects for the home page so visitors can see published projects.
-    // If a user is logged in, also attempt to load their projects.
-    // Load featured projects (selected by professors)
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    // Load featured projects and the user's projects once authenticated.
     loadProjetos();
-  }, [token, user]);
+  }, [token, user, router]);
 
   const loadProjetos = async () => {
     setLoading(true);

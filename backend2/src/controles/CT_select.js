@@ -10,6 +10,67 @@ const registros = require('../modelos/registros');
 const turmas = require('../modelos/turmas');
 const usuarios = require('../modelos/usuarios');
 const common = require('../modelos/common');
+const PDFDocument = require('pdfkit');
+
+const formatQuery = (req) => {
+  const format = req.query && (req.query.formato || req.query.format);
+  return format ? String(format).toLowerCase() : 'txt';
+};
+
+const escapeHtml = (value = '') => String(value)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+const formatDate = (value) => {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return String(value);
+  return date.toLocaleDateString('pt-BR');
+};
+
+const formatDurationSimple = (duration) => {
+  if (!duration) return '—';
+  const parts = String(duration).split(':').map(Number);
+  if (parts.length < 2 || parts.some(isNaN)) return String(duration);
+  const [hours, minutes] = parts;
+  const segments = [];
+  if (hours > 0) segments.push(`${hours}h`);
+  if (minutes > 0 || hours === 0) segments.push(`${minutes}m`);
+  return segments.join(' ');
+};
+
+const renderPdf = async (content) => new Promise((resolve, reject) => {
+  const doc = new PDFDocument({ size: 'A4', margin: 50 });
+  const chunks = [];
+  doc.on('data', (chunk) => chunks.push(chunk));
+  doc.on('end', () => resolve(Buffer.concat(chunks)));
+  doc.on('error', reject);
+  doc.font('Helvetica').fontSize(12).text(content, { lineGap: 4 });
+  doc.end();
+});
+
+const sendExport = async (res, content, filenameBase, format) => {
+  if (format === 'pdf') {
+    const pdfBuffer = await renderPdf(content);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filenameBase}.pdf"`);
+    return res.status(200).send(pdfBuffer);
+  }
+
+  if (format === 'doc') {
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8" /><title>${escapeHtml(filenameBase)}</title></head><body><div style="font-family: Arial, sans-serif; white-space: pre-wrap;">${escapeHtml(content)}</div></body></html>`;
+    res.setHeader('Content-Type', 'application/msword');
+    res.setHeader('Content-Disposition', `attachment; filename="${filenameBase}.doc"`);
+    return res.status(200).send(html);
+  }
+
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filenameBase}.txt"`);
+  return res.status(200).send(content);
+};
 
 // Allowed searchable fields per table (keeps search safe)
 const searchable = {
@@ -181,39 +242,39 @@ const getProjetoById = async (req, res) => {
 };
 const getRegistros = wrapGetSimple(registros.getRegistros, registros.getRegistrosTotal, 'Registros', 'registros');
 
-// Generate a plain-text export of registros. If ?projeto_id=ID is provided, export only that project's registros;
-// otherwise export registros grouped by project.
+// Generate an export of registros in TXT, PDF or DOC format. If ?projeto_id=ID is provided, export only that project's registros; otherwise export all registros grouped by project.
 const getRegistrosTxt = async (req, res) => {
   try {
     const projetoId = req.query && req.query.projeto_id;
+    const format = formatQuery(req);
 
     let rows = [];
     if (projetoId) {
       rows = await registros.getRegistrosByProjeto(projetoId);
-      // single project export
       const projectName = (rows && rows.length && rows[0].nome_projeto) ? rows[0].nome_projeto : `projeto_${projetoId}`;
-      let content = `Registros de reuniões - Projeto: ${projectName} (ID: ${projetoId})\n\n`;
-      if (!rows || rows.length === 0) content += 'Nenhum registro encontrado.\n';
-      else {
+      let content = `Relatório do projeto: ${projectName} (ID: ${projetoId})\n`;
+      content += '========================================\n\n';
+      if (!rows || rows.length === 0) {
+        content += 'Nenhum registro encontrado.\n';
+      } else {
         rows.forEach((r, idx) => {
-          content += `#${idx + 1} - Data: ${r.data_reuniao} | Duração: ${r.duracao_reuniao} | Título: ${r.titulo_reuniao}\n`;
-          content += `Participantes: ${r.lista_participantes}\n`;
-          content += `Relatório:\n${r.relatorio || ''}\n`;
-          content += '----------------------------------------\n';
+          content += `Registro #${idx + 1}\n`;
+          content += `Título: ${r.titulo_reuniao || '—'}\n`;
+          content += `Data: ${formatDate(r.data_reuniao)}\n`;
+          content += `Duração: ${formatDurationSimple(r.duracao_reuniao)}\n`;
+          content += `Participantes: ${r.lista_participantes || '—'}\n`;
+          content += `Relatório:\n${r.relatorio || '—'}\n`;
+          content += '──────────────────────────────────────\n\n';
         });
       }
 
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      res.setHeader('Content-Disposition', `attachment; filename="registros_projeto_${projetoId}.txt"`);
-      return res.status(200).send(content);
+      return sendExport(res, content, `registros_projeto_${projetoId}`, format);
     }
 
-    // export all registros grouped by project
     rows = await registros.getAllRegistrosWithProject();
     let content = `Registros de reuniões - Todos os projetos\n\n`;
     if (!rows || rows.length === 0) content += 'Nenhum registro encontrado.\n';
     else {
-      // group by projeto id
       const grouped = {};
       rows.forEach((r) => {
         const pid = r.id_projeto || 'sem_projeto';
@@ -228,19 +289,20 @@ const getRegistrosTxt = async (req, res) => {
         if (grp.registros.length === 0) content += 'Nenhum registro encontrado.\n\n';
         else {
           grp.registros.forEach((r, idx) => {
-            content += `#${idx + 1} - Data: ${r.data_reuniao} | Duração: ${r.duracao_reuniao} | Título: ${r.titulo_reuniao}\n`;
-            content += `Participantes: ${r.lista_participantes}\n`;
-            content += `Relatório:\n${r.relatorio || ''}\n`;
-            content += '----------------------------------------\n';
+            content += `Registro #${idx + 1}\n`;
+            content += `Título: ${r.titulo_reuniao || '—'}\n`;
+            content += `Data: ${formatDate(r.data_reuniao)}\n`;
+            content += `Duração: ${formatDurationSimple(r.duracao_reuniao)}\n`;
+            content += `Participantes: ${r.lista_participantes || '—'}\n`;
+            content += `Relatório:\n${r.relatorio || '—'}\n`;
+            content += '──────────────────────────────────────\n';
           });
           content += '\n';
         }
       }
     }
 
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="registros_todos_projetos.txt"`);
-    return res.status(200).send(content);
+    return sendExport(res, content, 'registros_todos_projetos', format);
   } catch (err) {
     console.error('Erro ao gerar exportacao de registros:', err);
     return res.status(500).json({ error: err.message });

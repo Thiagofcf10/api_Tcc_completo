@@ -61,7 +61,6 @@ export default function TopNav() {
         <div className="flex items-center gap-2 md:hidden justify-center">
           <button onClick={goBack} className="px-3 py-1 bg-white bg-opacity-20 text-black rounded transition-all text-sm">← Voltar</button>
           <button onClick={goHome} className="px-3 py-1 bg-white bg-opacity-20 text-black rounded transition-all text-sm">🏠 Principal</button>
-          <button onClick={() => router.push('/home')} className="px-3 py-1 bg-white bg-opacity-20 text-black rounded transition-all text-sm">Ir ao Painel</button>
           <button onClick={() => router.push('/projetos')} className="px-3 py-1 bg-white bg-opacity-20 text-black rounded transition-all text-sm">📋 Projetos</button>
         </div>
 

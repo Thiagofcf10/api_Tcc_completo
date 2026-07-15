@@ -7,6 +7,8 @@ import Navbar from '@/components/Navbar';
 import ProjetoCard from '@/components/ProjetoCard';
 import api, { fetchWithApiKey, fetchWithAuth } from '@/lib/api';
 
+const alunoRelatorioTemplate = `Atividades realizadas:\nDificuldades, caso houver:\nObservações:\n`;
+
 export default function MeusProjetosAlunoPage() {
   const { user, token } = useAuth();
   const router = useRouter();
@@ -230,7 +232,7 @@ export function RegistroModal({ isOpen, onClose, projectName, registros, current
                     <button onClick={() => {
                       if (!canEdit) return alert('Você não tem permissão para editar este relatório ou o prazo expirou.');
                       setEditing(r.id);
-                      setEditText(r.relatorio || '');
+                      setEditText(r.relatorio || alunoRelatorioTemplate);
                     }} disabled={!canEdit} className={`flex items-center gap-2 px-3 py-1 rounded ${canEdit ? 'bg-sky-600 text-white' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>
                       <span>{canEdit ? '✏️' : '🔒'}</span>
                       <span>{canEdit ? 'Editar' : 'Bloqueado'}</span>
@@ -239,7 +241,7 @@ export function RegistroModal({ isOpen, onClose, projectName, registros, current
                 </div>
                 {editing === r.id && (
                   <div className="mt-2 text-gray-700 text-sm">
-                    <textarea value={editText} onChange={(e) => setEditText(e.target.value)} className="w-full border rounded p-2" rows={4} />
+                    <textarea value={editText} onChange={(e) => setEditText(e.target.value)} placeholder="Atividades realizadas:\nDificuldades, caso houver:\nObservações:\n" className="w-full border rounded p-2" rows={4} />
                     <div className="mt-2 flex gap-2">
                       <button onClick={async () => {
                         await onEditSubmit(r.id, editText);
