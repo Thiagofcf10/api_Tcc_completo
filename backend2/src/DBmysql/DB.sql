@@ -117,8 +117,6 @@ CREATE TABLE registros (
     lista_participantes TEXT NOT NULL, -- Pode ser uma lista de nomes ou IDs
     duracao_reuniao TIME NOT NULL, -- Armazena a duração no formato HH:MM:SS
     titulo_reuniao VARCHAR(255) NOT NULL,
-    nome_projeto VARCHAR(255) DEFAULT NULL,
-    resumo TEXT DEFAULT NULL,
     relatorio TEXT DEFAULT NULL,
     relatorio_edit_deadline DATETIME DEFAULT NULL,
     relatorio_edit_allowed TEXT DEFAULT NULL,
@@ -143,11 +141,6 @@ CREATE TABLE arquivos (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     id_meuprojeto INT DEFAULT NULL,
     resumo TEXT NOT NULL,
-    justificativa TEXT NOT NULL,
-    objetivo TEXT NOT NULL,
-    sumario TEXT NOT NULL,
-    introducao TEXT NOT NULL,
-    bibliografia TEXT NOT NULL,
     nome_arquivo VARCHAR(255),
     caminho_arquivo VARCHAR(500),
     tipo_arquivo VARCHAR(100),
