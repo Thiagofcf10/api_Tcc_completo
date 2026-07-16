@@ -14,11 +14,16 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    // Gerar nome único com timestamp
+    // Gerar nome único com timestamp e preservar a extensão original de forma segura.
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    const name = path.basename(file.originalname, ext);
-    cb(null, name + '-' + uniqueSuffix + ext);
+    const ext = path.extname(file.originalname || '');
+    const baseName = path.basename(file.originalname || '', ext) || 'arquivo';
+    const safeBaseName = baseName
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9._-]/g, '_')
+      .slice(0, 80);
+    cb(null, `${safeBaseName}-${uniqueSuffix}${ext}`);
   }
 });
 
@@ -32,6 +37,9 @@ const fileFilter = (req, file, cb) => {
     'application/vnd.ms-excel',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'text/plain',
+    'text/markdown',
+    'application/json',
+    'application/xml',
     'image/jpeg',
     'image/png',
     'image/gif',
@@ -39,13 +47,16 @@ const fileFilter = (req, file, cb) => {
   ];
 
   // Extensões permitidas
-  const allowedExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.txt', '.jpg', '.jpeg', '.png', '.gif', '.webp'];
+  const allowedExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.txt', '.md', '.json', '.xml', '.jpg', '.jpeg', '.png', '.gif', '.webp'];
   const ext = path.extname(file.originalname).toLowerCase();
+  const mime = (file.mimetype || '').toLowerCase();
+  const isAllowedMime = allowedMimes.includes(mime) || mime.startsWith('text/') || mime === 'application/json' || mime === 'application/xml' || mime === 'application/octet-stream' || mime === '';
+  const isAllowedExtension = allowedExtensions.includes(ext) || ext === '.json' || ext === '.md' || ext === '.xml';
 
-  if (allowedMimes.includes(file.mimetype) && allowedExtensions.includes(ext)) {
+  if (isAllowedMime && isAllowedExtension) {
     cb(null, true);
   } else {
-    cb(new Error(`Tipo de arquivo não permitido: ${file.mimetype}. Tipos permitidos: PDF, DOC, DOCX, XLS, XLSX, TXT, JPG, PNG, GIF, WEBP`), false);
+    cb(new Error(`Tipo de arquivo não permitido: ${file.mimetype}. Tipos permitidos: PDF, DOC, DOCX, XLS, XLSX, TXT, MD, JSON, XML, JPG, PNG, GIF, WEBP`), false);
   }
 };
 

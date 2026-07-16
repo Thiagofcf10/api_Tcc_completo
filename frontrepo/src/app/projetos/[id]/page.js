@@ -14,20 +14,18 @@ export default function ProjetoDetailPage() {
   const [orientadorNome, setOrientadorNome] = useState(null);
   const [alunoNomes, setAlunoNomes] = useState([]);
   const [loading, setLoading] = useState(true);
-  
 
   useEffect(() => {
     if (!id) return;
+
     (async () => {
       setLoading(true);
       try {
         const apiKey = api.getApiKey();
-        // fetch single projeto by id
         const projResp = await fetchWithApiKey(`${api.getApiUrl()}/selectprojetos/${id}`);
         const p = projResp && projResp.data ? projResp.data : null;
         setProjeto(p || null);
 
-        // Fetch orientador name (if it's an id)
         try {
           if (p && p.orientador) {
             const profResp = await fetchWithApiKey(`${api.getApiUrl()}/selectprofessor/${p.orientador}?api_key=${apiKey}`);
@@ -39,7 +37,6 @@ export default function ProjetoDetailPage() {
           // ignore
         }
 
-        // Prefer explicit author names if stored, otherwise resolve aluno names from matricula_alunos (comma-separated IDs)
         try {
           if (p && p.nome_autores && typeof p.nome_autores === 'string' && p.nome_autores.trim() !== '') {
             const nomes = p.nome_autores.split(',').map(s => s.trim()).filter(Boolean);
@@ -63,13 +60,10 @@ export default function ProjetoDetailPage() {
         const arquivosResp = await fetchWithApiKey(`${api.getApiUrl()}/selectarquivos?projeto_id=${id}`);
         setArquivos(arquivosResp.data || []);
 
-        // load custos for this projeto (backend supports projeto_id query)
         try {
           const custosResp = await fetchWithApiKey(`${api.getApiUrl()}/selectcustos?projeto_id=${id}`);
-          const rows = custosResp.data || [];
-          setCustos(rows);
+          setCustos(custosResp.data || []);
         } catch (e) {
-          // ignore custos load errors
           setCustos([]);
         }
       } catch (e) {
@@ -87,94 +81,105 @@ export default function ProjetoDetailPage() {
     return `${api.getApiUrl()}/downloadarquivo/${encodeURIComponent(filename)}`;
   }
 
+  function formatarNomeArquivo(nome, fallback = 'Arquivo do projeto') {
+    if (!nome) return fallback;
+    let texto = String(nome).replace(/\+/g, ' ');
+    for (let i = 0; i < 3; i++) {
+      try {
+        const next = decodeURIComponent(texto);
+        if (next === texto) break;
+        texto = next;
+      } catch {
+        break;
+      }
+    }
+    const nomeLimpo = texto.trim();
+    if (!nomeLimpo || nomeLimpo === 'Arquivo' || nomeLimpo === 'arquivo') return fallback;
+    return nomeLimpo;
+  }
+
+  const resumoArquivos = arquivos.find((a) => a?.resumo)?.resumo || '';
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="max-w-7xl mx-auto p-8">
+    <div className="min-h-screen bg-gray-50 flex">
+      <main className="flex-1 p-6">
         {loading ? (
-          <div>⏳ Carregando...</div>
+          <div className="text-center py-12">
+            <div className="text-2xl">⏳ Carregando...</div>
+          </div>
         ) : !projeto ? (
-          <div>Projeto não encontrado. <button onClick={() => router.push('/projetos')} className="text-blue-600">Voltar</button></div>
+          <div className="bg-white rounded shadow p-6">
+            <p className="text-gray-600">Projeto não encontrado.</p>
+            <button onClick={() => router.back()} className="mt-3 text-blue-600 hover:underline">Voltar</button>
+          </div>
         ) : (
           <div className="space-y-6">
-              <div className="bg-white rounded shadow p-6">
-                <h1 className="text-2xl text-black font-bold">{projeto.nome_projeto}</h1>
-                <div className="text-sm text-gray-700 mt-2 space-y-2">
-                  {arquivos && arquivos.length > 0 ? (
-                    <>
-                      <div className="text-sm text-gray-600"><strong>Resumo:</strong> {arquivos[0].resumo || <span className="text-gray-600">Resumo não disponível.</span>}</div>
-                      <div className="text-sm text-gray-600"><strong>Justificativa:</strong> {arquivos[0].justificativa || 'N/A'}</div>
-                    </>
-                  ) : (
-                    <span className="text-gray-600">Resumo não disponível.</span>
-                  )}
+            <div className="bg-white rounded shadow p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-800">{projeto.nome_projeto || 'Projeto'}</h1>
+                  <p className="text-sm text-gray-600 mt-2"><strong>Tipo:</strong> {projeto.tipo_projeto || '—'}</p>
+                  {resumoArquivos ? (
+                    <div className="text-sm text-gray-600 mt-2"><strong>Resumo:</strong> {resumoArquivos}</div>
+                  ) : null}
+                  <p className="text-sm text-gray-600 mt-2"><strong>Orientador:</strong> {orientadorNome || projeto.orientador || '—'}</p>
+                  <p className="text-sm text-gray-600"><strong>Coorientador:</strong> {projeto.coorientador || '—'}</p>
+                  <p className="text-sm text-gray-600"><strong>Alunos:</strong> {alunoNomes && alunoNomes.length > 0 ? alunoNomes.join(', ') : (projeto.matricula_alunos || '—')}</p>
                 </div>
-                <p className="text-sm text-gray-600 mt-3"><strong>Orientador:</strong> {orientadorNome || projeto.orientador}</p>
-                <p className="text-sm text-gray-600"><strong>Coorientador:</strong> {projeto.coorientador}</p>
-                <p className="text-sm text-gray-600"><strong>Alunos:</strong> {alunoNomes && alunoNomes.length > 0 ? alunoNomes.join(', ') : (projeto.matricula_alunos || '—')}</p>
+                <button onClick={() => router.back()} className="text-sm text-blue-600 hover:underline">Voltar</button>
               </div>
+            </div>
 
             <div className="bg-white rounded shadow p-6">
               <h2 className="text-lg text-black font-semibold mb-3">Arquivos do projeto</h2>
               {arquivos.length === 0 ? (
-                  <p className="text-gray-500">Nenhum arquivo encontrado.</p>
-                ) : (
-                  <>
-                    {/* Pré-visualização removida conforme solicitado */}
-                    <ul className="space-y-3">
-                      {arquivos.map(a => (
-                        <li key={a.id} className="flex flex-col lg:flex-row lg:items-center justify-between bg-gray-50 border border-gray-100 rounded p-3 gap-3">
-                          <div className="flex-1">
-                            <div className="font-semibold text-gray-800">{a.nome_arquivo || 'Arquivo'}</div>
-                            {a.resumo && <div className="text-xs text-gray-600 mt-1">{a.resumo}</div>}
-                            <div className="text-xs text-gray-500 mt-2">Enviado em: {a.created_at ? new Date(a.created_at).toLocaleString('pt-BR') : '—'}</div>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-3">
-                            {/* Botão de pré-visualização removido */}
-                            <a className="inline-flex items-center gap-2 px-3 py-2 rounded border border-sky-600 text-sky-600 hover:bg-sky-50" href={`/arquivos/${a.id}`}>🔎 Ver</a>
-                            <a className="inline-flex items-center gap-2 px-3 py-2 rounded bg-green-600 text-white hover:bg-green-700" href={downloadLink(a.caminho_arquivo)} target="_blank" rel="noreferrer">⤓ Baixar</a>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
+                <p className="text-gray-500">Nenhum arquivo encontrado.</p>
+              ) : (
+                <ul className="space-y-3">
+                  {arquivos.map((a) => (
+                    <li key={a.id} className="flex flex-col lg:flex-row lg:items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 gap-3">
+                      <div className="flex-1">
+                        <div className="font-bold text-blue-900 text-base">{formatarNomeArquivo(a.nome_arquivo, projeto?.nome_projeto ? `Arquivo do projeto - ${projeto.nome_projeto}` : 'Arquivo do projeto')}</div>
+                        <div className="text-sm text-blue-700 font-medium mt-2">📅 {a.created_at ? new Date(a.created_at).toLocaleString('pt-BR') : '—'}</div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <a className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-blue-600 text-blue-700 font-semibold hover:bg-blue-600 hover:text-white transition-all" href={`/arquivos/${a.id}`}>🔎 Ver</a>
+                        <a className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition-all shadow-md" href={downloadLink(a.caminho_arquivo)} target="_blank" rel="noreferrer">⤓ Baixar</a>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             <div className="bg-white rounded shadow p-6">
-              <h2 className="text-lg text-black  font-semibold mb-3">Custos do projeto</h2>
+              <h2 className="text-lg text-black font-semibold mb-3">Custos do projeto</h2>
               {custos.length === 0 ? (
                 <p className="text-gray-500">Nenhum custo registrado para este projeto.</p>
               ) : (
                 <div className="space-y-4">
                   {custos.map((c, idx) => {
-                    // Parse equipamentos e insumos
                     const equipamentos = (c.equipamento || '')
                       .split('\n')
-                      .map(line => line.trim())
-                      .filter(line => line.length > 0);
-                    
+                      .map((line) => line.trim())
+                      .filter((line) => line.length > 0);
                     const insumos = (c.insumos || '')
                       .split('\n')
-                      .map(line => line.trim())
-                      .filter(line => line.length > 0);
-                    
+                      .map((line) => line.trim())
+                      .filter((line) => line.length > 0);
                     const custos_equipamento = Number(c.custos_equipamento || 0);
                     const custos_insumos = Number(c.custos_insumos || 0);
                     const total = custos_equipamento + custos_insumos;
-                    
+
                     return (
-                      <div key={c.id} className="border border-gray-200 rounded-lg p-5 bg-gradient-to-br from-gray-50 to-white hover:shadow-md transition">
-                        {/* Cabeçalho */}
+                      <div key={c.id} className="border border-gray-200 rounded-lg p-5 bg-gradient-to-br from-gray-50 to-white">
                         <div className="flex items-start justify-between mb-4">
                           <div>
                             <div className="font-semibold text-gray-900">Custo #{idx + 1}</div>
                             <div className="text-xs text-gray-500 mt-1">Total: <span className="font-semibold text-gray-900">R$ {total.toFixed(2)}</span></div>
                           </div>
                         </div>
-                        
-                        {/* Grid 2 colunas */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Equipamentos */}
                           <div className="bg-white rounded border border-blue-100 p-4">
                             <div className="flex items-center gap-2 mb-3">
                               <span className="text-lg">🔧</span>
@@ -196,8 +201,7 @@ export default function ProjetoDetailPage() {
                               <div className="text-sm font-semibold text-blue-600">R$ {custos_equipamento.toFixed(2)}</div>
                             </div>
                           </div>
-                          
-                          {/* Insumos */}
+
                           <div className="bg-white rounded border border-green-100 p-4">
                             <div className="flex items-center gap-2 mb-3">
                               <span className="text-lg">📦</span>
@@ -223,8 +227,7 @@ export default function ProjetoDetailPage() {
                       </div>
                     );
                   })}
-                  
-                  {/* Resumo Total */}
+
                   <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg p-4 border border-indigo-200">
                     <div className="flex items-center justify-between">
                       <div>

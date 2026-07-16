@@ -19,12 +19,8 @@ export default function ArquivosPage() {
   const [toast, setToast] = useState(null);
   const [formData, setFormData] = useState({
     projeto_id: '',
-    resumo: '',
-    justificativa: '',
-    objetivo: '',
-    sumario: '',
-    introducao: '',
-    bibliografia: ''
+    nome_arquivo: '',
+    resumo: ''
   });
   const [file, setFile] = useState(null);
   const [editingId, setEditingId] = useState(null);
@@ -100,13 +96,9 @@ export default function ArquivosPage() {
     try {
       const fd = new FormData();
       fd.append('arquivo', file);
-  fd.append('projeto_id', selectedProjetoId);
-      fd.append('resumo', formData.resumo);
-      fd.append('justificativa', formData.justificativa);
-      fd.append('objetivo', formData.objetivo);
-      fd.append('sumario', formData.sumario);
-      fd.append('introducao', formData.introducao);
-      fd.append('bibliografia', formData.bibliografia);
+      fd.append('projeto_id', selectedProjetoId);
+      fd.append('nome_arquivo', formData.nome_arquivo || '');
+      fd.append('resumo', formData.resumo || '');
 
       const token = localStorage.getItem('token');
       const res = await fetch(`${api.getApiUrl()}/inserirarquivo`, {
@@ -121,12 +113,8 @@ export default function ArquivosPage() {
       setFile(null);
       setFormData({
         projeto_id: selectedProjetoId,
-        resumo: '',
-        justificativa: '',
-        objetivo: '',
-        sumario: '',
-        introducao: '',
-        bibliografia: ''
+        nome_arquivo: '',
+        resumo: ''
       });
       loadArquivos(selectedProjetoId);
     } catch (err) {
@@ -147,12 +135,8 @@ export default function ArquivosPage() {
       // send the metadata fields as text parts.
       const fd = new FormData();
       if (file) fd.append('arquivo', file);
+      fd.append('nome_arquivo', formData.nome_arquivo || '');
       fd.append('resumo', formData.resumo || '');
-      fd.append('justificativa', formData.justificativa || '');
-      fd.append('objetivo', formData.objetivo || '');
-      fd.append('sumario', formData.sumario || '');
-      fd.append('introducao', formData.introducao || '');
-      fd.append('bibliografia', formData.bibliografia || '');
       fd.append('projeto_id', selectedProjetoId);
 
       const token = localStorage.getItem('token');
@@ -204,6 +188,23 @@ export default function ArquivosPage() {
     } catch (err) {
       setToast({ type: 'error', message: err.message || 'Erro ao deletar arquivo' });
     }
+  };
+
+  const formatarNomeArquivo = (nome, fallback = 'Arquivo do projeto') => {
+    if (!nome) return fallback;
+    let texto = String(nome).replace(/\+/g, ' ');
+    for (let i = 0; i < 3; i++) {
+      try {
+        const next = decodeURIComponent(texto);
+        if (next === texto) break;
+        texto = next;
+      } catch {
+        break;
+      }
+    }
+    const nomeLimpo = texto.trim();
+    if (!nomeLimpo || nomeLimpo === 'Arquivo' || nomeLimpo === 'arquivo') return fallback;
+    return nomeLimpo;
   };
 
   return (
@@ -259,6 +260,17 @@ export default function ArquivosPage() {
                   <h2 className="text-lg text-black font-semibold mb-4">Enviar Arquivo</h2>
                   <form onSubmit={handleSubmit} className="space-y-3">
                     <div>
+                      <label className="block text-sm text-black font-medium mb-1">Nome de exibição do arquivo</label>
+                      <input
+                        name="nome_arquivo"
+                        value={formData.nome_arquivo || ''}
+                        onChange={handleInputChange}
+                        placeholder="Ex.: Relatório Final"
+                        className="w-full placeholder-gray-400 px-3 py-2 border border-gray-300 rounded"
+                      />
+                    </div>
+
+                    <div>
                       <label className="block text-sm text-black font-medium mb-1">Arquivo *</label>
                       <input
                         type="file"
@@ -276,66 +288,6 @@ export default function ArquivosPage() {
                         value={formData.resumo}
                         onChange={handleInputChange}
                         placeholder="Resumo do projeto"
-                        rows="2"
-                        className="w-full placeholder-gray-400 px-3 py-2 border border-gray-300 rounded"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm text-black font-medium mb-1">Objetivo</label>
-                      <textarea
-                        name="objetivo"
-                        value={formData.objetivo}
-                        onChange={handleInputChange}
-                        placeholder="Objetivo do projeto"
-                        rows="2"
-                        className="w-full placeholder-gray-400 px-3 py-2 border border-gray-300 rounded"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm text-black font-medium mb-1">Justificativa</label>
-                      <textarea
-                        name="justificativa"
-                        value={formData.justificativa}
-                        onChange={handleInputChange}
-                        placeholder="Justificativa"
-                        rows="2"
-                        className="w-full placeholder-gray-400 px-3 py-2 border border-gray-300 rounded"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm text-black font-medium mb-1">Sumário</label>
-                      <textarea
-                        name="sumario"
-                        value={formData.sumario}
-                        onChange={handleInputChange}
-                        placeholder="Sumário do arquivo"
-                        rows="2"
-                        className="w-full placeholder-gray-400 px-3 py-2 border border-gray-300 rounded"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm text-black font-medium mb-1">Introdução</label>
-                      <textarea
-                        name="introducao"
-                        value={formData.introducao}
-                        onChange={handleInputChange}
-                        placeholder="Introdução"
-                        rows="2"
-                        className="w-full placeholder-gray-400 px-3 py-2 border border-gray-300 rounded"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm text-black font-medium mb-1">Bibliografia</label>
-                      <textarea
-                        name="bibliografia"
-                        value={formData.bibliografia}
-                        onChange={handleInputChange}
-                        placeholder="Referências bibliográficas"
                         rows="2"
                         className="w-full placeholder-gray-400 px-3 py-2 border border-gray-300 rounded"
                       />
@@ -386,15 +338,15 @@ export default function ArquivosPage() {
                       {arquivos.map(arquivo => (
                         <div key={arquivo.id} className="border border-gray-200 rounded p-3 flex justify-between items-start">
                           <div className="flex-1">
-                            <p className="font-semibold text-sm text-black">📄 {arquivo.nome_arquivo}</p>
+                            <p className="font-semibold text-sm text-black">📄 {formatarNomeArquivo(arquivo.nome_arquivo, selectedProject?.nome_projeto ? `Arquivo do projeto - ${selectedProject.nome_projeto}` : 'Arquivo do projeto')}</p>
                             <p className="text-xs text-gray-600 mt-1">{arquivo.resumo}</p>
                           </div>
                           <div className="flex flex-col gap-2">
                             <button
                               onClick={() => handleDeleteArquivo(arquivo.id)}
                               className="ml-2 bg-rose-700 hover:bg-rose-800 text-white px-2 py-1 rounded text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-rose-300"
-                              aria-label={`Deletar arquivo ${arquivo.nome_arquivo || ''}`}
-                              title={`Deletar ${arquivo.nome_arquivo || ''}`}
+                              aria-label={`Deletar arquivo ${formatarNomeArquivo(arquivo.nome_arquivo) || ''}`}
+                              title={`Deletar ${formatarNomeArquivo(arquivo.nome_arquivo) || ''}`}
                             >
                               🗑️
                             </button>
@@ -405,19 +357,15 @@ export default function ArquivosPage() {
                                 setSelectedProjetoId(String(arquivo.projeto_id || arquivo.id_meuprojeto || ''));
                                 setFormData(prev => ({
                                   ...prev,
-                                  resumo: arquivo.resumo || '',
-                                  justificativa: arquivo.justificativa || '',
-                                  objetivo: arquivo.objetivo || '',
-                                  sumario: arquivo.sumario || '',
-                                  introducao: arquivo.introducao || '',
-                                  bibliografia: arquivo.bibliografia || ''
+                                  nome_arquivo: arquivo.nome_arquivo || '',
+                                  resumo: arquivo.resumo || ''
                                 }));
                                 // don't override file input unless user selects a new file
                                 setFile(null);
                               }}
                               className="ml-2 bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-amber-300"
-                              aria-label={`Editar arquivo ${arquivo.nome_arquivo || ''}`}
-                              title={`Editar ${arquivo.nome_arquivo || ''}`}
+                              aria-label={`Editar arquivo ${formatarNomeArquivo(arquivo.nome_arquivo) || ''}`}
+                              title={`Editar ${formatarNomeArquivo(arquivo.nome_arquivo) || ''}`}
                             >
                               ✏️ Editar
                             </button>

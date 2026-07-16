@@ -146,7 +146,32 @@ export default function ArquivoDetailPage() {
     return `${val.toFixed( i===0 ? 0 : 2 )} ${units[i]}`;
   };
 
+  const formatarNomeArquivo = (nome, fallback = 'Arquivo do projeto') => {
+    if (!nome) return fallback;
+    let texto = String(nome).replace(/\+/g, ' ');
+    const decoded = [];
+    for (let i = 0; i < 3; i++) {
+      try {
+        const next = decodeURIComponent(texto);
+        if (next === texto) break;
+        decoded.push(next);
+        texto = next;
+      } catch {
+        break;
+      }
+    }
+    const nomeLimpo = (decoded[decoded.length - 1] || texto || '').trim();
+    if (!nomeLimpo || nomeLimpo === 'Arquivo' || nomeLimpo === 'arquivo') return fallback;
+    return nomeLimpo;
+  };
+
   const isImage = (name) => /\.(png|jpe?g|gif|bmp|webp)$/i.test(name || '');
+  const isOfficeDocument = (name, mime) => {
+    const lowerName = String(name || '').toLowerCase();
+    const lowerMime = String(mime || '').toLowerCase();
+    return /\.(doc|docx|xls|xlsx)$/i.test(lowerName) ||
+      ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'].includes(lowerMime);
+  };
   const isPDF = (name) => /\.pdf$/i.test(name || '');
   const isTextFile = (name, mime) => {
     if (mime && /^text\//.test(String(mime))) return true;
@@ -156,6 +181,7 @@ export default function ArquivoDetailPage() {
   const [fileContent, setFileContent] = useState(null);
   const [resumoExpanded, setResumoExpanded] = useState(false);
   const [pdfViewable, setPdfViewable] = useState(null); // null=checking, true/false
+  const [docPreviewUrl, setDocPreviewUrl] = useState(null);
 
   // Check if PDF can be previewed (try a fetch to verify availability/CORS)
   useEffect(() => {
@@ -177,6 +203,22 @@ export default function ArquivoDetailPage() {
     };
     checkPdf();
     return () => { mounted = false; };
+  }, [arquivo]);
+
+  useEffect(() => {
+    if (!arquivo || !isOfficeDocument(arquivo.caminho_arquivo, arquivo.tipo_mime || arquivo.mimetype)) {
+      setDocPreviewUrl(null);
+      return;
+    }
+    if (typeof window === 'undefined') return;
+    try {
+      const url = previewLink(arquivo.caminho_arquivo);
+      const absoluteUrl = new URL(url, window.location.origin).toString();
+      const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(absoluteUrl)}`;
+      setDocPreviewUrl(viewerUrl);
+    } catch {
+      setDocPreviewUrl(null);
+    }
   }, [arquivo]);
 
   return (
@@ -203,7 +245,7 @@ export default function ArquivoDetailPage() {
                 </div>
 
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-gray-800">{arquivo.nome_arquivo || 'Arquivo'}</h1>
+                  <h1 className="text-2xl font-bold text-gray-800">{formatarNomeArquivo(arquivo.nome_arquivo, projeto?.nome_projeto ? `Arquivo do projeto - ${projeto.nome_projeto}` : 'Arquivo do projeto')}</h1>
                   <div className="mt-3 text-sm text-gray-600 space-y-2">
                     {arquivo.resumo && (
                       <div>
@@ -216,9 +258,12 @@ export default function ArquivoDetailPage() {
                         )}
                       </div>
                     )}
-                    {arquivo.objetivo && <p><strong>Objetivo:</strong> {arquivo.objetivo}</p>}
-                    {arquivo.sumario && <p><strong>Sumário:</strong> {arquivo.sumario}</p>}
-                    {arquivo.introducao && <p><strong>Introdução:</strong> {arquivo.introducao}</p>}
+                    {arquivo.resumo && (
+                      <p><strong>Resumo do projeto:</strong> {arquivo.resumo}</p>
+                    )}
+                    {arquivo.nome_projeto && (
+                      <p><strong>Nome do projeto:</strong> {arquivo.nome_projeto}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -232,6 +277,12 @@ export default function ArquivoDetailPage() {
                     <iframe title="PDF preview" src={previewLink(arquivo.caminho_arquivo)} className="w-full h-[650px] rounded border" />
                   ) : (
                     <div className="p-6 rounded border bg-gray-50 text-gray-600">Pré-visualização do PDF não está disponível neste navegador/servidor. Use o botão de download para obter o arquivo.</div>
+                  )
+                ) : isOfficeDocument(arquivo.caminho_arquivo, arquivo.tipo_mime || arquivo.mimetype) ? (
+                  docPreviewUrl ? (
+                    <iframe title="Documento preview" src={docPreviewUrl} className="w-full h-[650px] rounded border" />
+                  ) : (
+                    <div className="p-6 rounded border bg-gray-50 text-gray-600">Pré-visualização do documento não está disponível neste navegador/servidor. Use o botão de download para abrir o arquivo.</div>
                   )
                 ) : isImage(arquivo.caminho_arquivo) ? (
                   <img src={previewLink(arquivo.caminho_arquivo)} alt={arquivo.nome_arquivo} className="w-full rounded border" />
@@ -254,7 +305,7 @@ export default function ArquivoDetailPage() {
               <div>
                 <h3 className="text-sm text-gray-500">Detalhes do arquivo</h3>
                 <div className="mt-2 text-sm text-gray-800 space-y-1">
-                  <div><strong>Nome:</strong> {arquivo.nome_arquivo || '—'}</div>
+                  <div><strong>Nome:</strong> {formatarNomeArquivo(arquivo.nome_arquivo, projeto?.nome_projeto ? `Arquivo do projeto - ${projeto.nome_projeto}` : 'Arquivo do projeto') || '—'}</div>
                   <div><strong>Enviado por:</strong> {professorNome || arquivo.usuario || arquivo.usuario_id || '—'}</div>
                   <div><strong>Data:</strong> {arquivo.created_at ? new Date(arquivo.created_at).toLocaleString('pt-BR') : '—'}</div>
                   <div><strong>Tamanho:</strong> {formatBytes(arquivo.tamanho_arquivo || arquivo.tamanho || arquivo.size || arquivo.size_bytes || arquivo.bytes)}</div>

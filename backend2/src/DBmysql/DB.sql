@@ -117,6 +117,8 @@ CREATE TABLE registros (
     lista_participantes TEXT NOT NULL, -- Pode ser uma lista de nomes ou IDs
     duracao_reuniao TIME NOT NULL, -- Armazena a duração no formato HH:MM:SS
     titulo_reuniao VARCHAR(255) NOT NULL,
+    nome_projeto VARCHAR(255) DEFAULT NULL,
+    resumo TEXT DEFAULT NULL,
     relatorio TEXT DEFAULT NULL,
     relatorio_edit_deadline DATETIME DEFAULT NULL,
     relatorio_edit_allowed TEXT DEFAULT NULL,

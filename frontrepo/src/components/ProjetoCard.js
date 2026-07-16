@@ -15,7 +15,6 @@ export default function ProjetoCard({ projeto, onEdit, onDelete, showActions = f
   const [orientadorNome, setOrientadorNome] = useState(null);
   const [alunoNomes, setAlunoNomes] = useState([]);
   const [arquivoResumo, setArquivoResumo] = useState(null);
-  const [arquivoJustificativa, setArquivoJustificativa] = useState(null);
 
   const goToDetail = () => {
     if (projeto && projeto.id) router.push(`/projetos/${projeto.id}`);
@@ -148,10 +147,8 @@ export default function ProjetoCard({ projeto, onEdit, onDelete, showActions = f
         const data = resp && resp.data ? resp.data : [];
         const primeiro = Array.isArray(data) && data.length > 0 ? data[0] : null;
         const resumo = primeiro && primeiro.resumo ? primeiro.resumo : null;
-        const justificativa = primeiro && primeiro.justificativa ? primeiro.justificativa : null;
         if (mounted) {
           setArquivoResumo(resumo);
-          setArquivoJustificativa(justificativa);
         }
       } catch (err) {
         if (mounted) setArquivoResumo(null);
@@ -254,7 +251,6 @@ export default function ProjetoCard({ projeto, onEdit, onDelete, showActions = f
             {arquivoResumo ? (
               <div className="text-sm text-gray-700 mb-4">
                 <div className="text-sm text-gray-600 mt-2"><strong>Resumo:</strong> {arquivoResumo}</div>
-                <div className="text-sm text-gray-600 mt-2"><strong>Justificativa:</strong> {arquivoJustificativa || 'N/A'}</div>
               </div>
             ) : (
               <p className="text-sm text-gray-600 mb-4">Resumo não disponível.</p>

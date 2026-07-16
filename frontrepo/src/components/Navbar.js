@@ -14,7 +14,7 @@ export default function Navbar() {
     <>
       {/* Mobile: single toggle button that opens lateral sidebar with all options */}
       <div className="md:hidden">
-        <button onClick={() => setMenuOpen(true)} aria-label="Abrir menu" className="fixed bottom-4 right-4 z-50 p-3 bg-white border rounded-full shadow-md">☰</button>
+        <button onClick={() => setMenuOpen(true)} aria-label="Abrir menu" className="fixed bottom-4 right-4 z-50 p-3 bg-gray-900 border border-gray-400 rounded-full shadow-md">☰</button>
 
         {/* Mobile lateral sidebar when menuOpen */}
         {menuOpen && (

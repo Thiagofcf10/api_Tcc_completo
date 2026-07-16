@@ -42,20 +42,33 @@ const inserirArquivo = async (arquivo) => {
   const { 
     projeto_id,
     id_meuprojeto, 
-    resumo, 
-    justificativa, 
-    objetivo, 
-    sumario, 
-    introducao, 
-    bibliografia, 
-    nome_arquivo, 
-    caminho_arquivo, 
-    tipo_arquivo, 
-    tamanho_arquivo 
+    resumo,
+    nome_arquivo,
+    caminho_arquivo,
+    tipo_arquivo,
+    tamanho_arquivo,
+    justificativa,
+    objetivo,
+    sumario,
+    introducao,
+    bibliografia
   } = arquivo;
   
   const query = `
-    INSERT INTO arquivos (projeto_id, id_meuprojeto, resumo, justificativa, objetivo, sumario, introducao, bibliografia, nome_arquivo, caminho_arquivo, tipo_arquivo, tamanho_arquivo)
+    INSERT INTO arquivos (
+      projeto_id,
+      id_meuprojeto,
+      resumo,
+      nome_arquivo,
+      caminho_arquivo,
+      tipo_arquivo,
+      tamanho_arquivo,
+      justificativa,
+      objetivo,
+      sumario,
+      introducao,
+      bibliografia
+    )
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   // Use null when id_meuprojeto or projeto_id are not provided to avoid foreign key issues
@@ -66,15 +79,15 @@ const inserirArquivo = async (arquivo) => {
     projParam,
     idMeuParam,
     resumo || '',
+    nome_arquivo || null,
+    caminho_arquivo || null,
+    tipo_arquivo || null,
+    tamanho_arquivo || 0,
     justificativa || '',
     objetivo || '',
     sumario || '',
     introducao || '',
-    bibliografia || '',
-    nome_arquivo || null,
-    caminho_arquivo || null,
-    tipo_arquivo || null,
-    tamanho_arquivo || 0
+    bibliografia || ''
   ]);
 
   return { insertId: result.insertId };
@@ -119,18 +132,13 @@ const atualizarArquivo = async (id, arquivo, file) => {
 
   // metadata
   if (arquivo.resumo !== undefined) { fields.push('resumo = ?'); params.push(arquivo.resumo); }
-  if (arquivo.justificativa !== undefined) { fields.push('justificativa = ?'); params.push(arquivo.justificativa); }
-  if (arquivo.objetivo !== undefined) { fields.push('objetivo = ?'); params.push(arquivo.objetivo); }
-  if (arquivo.sumario !== undefined) { fields.push('sumario = ?'); params.push(arquivo.sumario); }
-  if (arquivo.introducao !== undefined) { fields.push('introducao = ?'); params.push(arquivo.introducao); }
-  if (arquivo.bibliografia !== undefined) { fields.push('bibliografia = ?'); params.push(arquivo.bibliografia); }
+  if (arquivo.nome_arquivo !== undefined) { fields.push('nome_arquivo = ?'); params.push(arquivo.nome_arquivo || null); }
   if (arquivo.projeto_id !== undefined) { fields.push('projeto_id = ?'); params.push(arquivo.projeto_id); }
   if (arquivo.id_meuprojeto !== undefined) { fields.push('id_meuprojeto = ?'); params.push(arquivo.id_meuprojeto); }
 
   // file fields (if new file uploaded)
   if (file) {
-    fields.push('nome_arquivo = ?'); params.push(file.originalname || null);
-    // Salvar apenas o nome do arquivo, não o caminho completo
+    // keep the custom display title if provided; otherwise fall back to the uploaded filename
     fields.push('caminho_arquivo = ?'); params.push(file.filename || null);
     fields.push('tipo_arquivo = ?'); params.push(file.mimetype || null);
     fields.push('tamanho_arquivo = ?'); params.push(file.size || 0);

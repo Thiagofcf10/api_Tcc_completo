@@ -9,7 +9,6 @@ import api, { fetchWithApiKey } from '@/lib/api';
 
 export default function HomePage() {
   const { user, token } = useAuth();
-  const [projetos, setProjetos] = useState([]);
   const [allProjects, setAllProjects] = useState([]);
   const [meusProjetos, setMeusProjetos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,7 +22,7 @@ export default function HomePage() {
       return;
     }
 
-    // Load featured projects and the user's projects once authenticated.
+    // Load all projects and the user's projects once authenticated.
     loadProjetos();
   }, [token, user, router]);
 
@@ -33,10 +32,6 @@ export default function HomePage() {
       // Carregar todos os projetos publicados para a aba 'Todos os Projetos'
       const allRes = await fetchWithApiKey(`${api.getApiUrl()}/selectprojetos`);
       setAllProjects(allRes.data || []);
-
-      // Carregar apenas projetos marcados como destaque (selecionados pelos professores)
-      const destaquesRes = await fetchWithApiKey(`${api.getApiUrl()}/selectprojetos_destaques`);
-      setProjetos(destaquesRes.data || []);
 
       // Carregar projetos do usuário (se houver) - use role-aware endpoint
       if (user?.id) {
@@ -143,22 +138,6 @@ export default function HomePage() {
             </div>
           ) : (
             <>
-              {/* Destaques sempre visíveis no topo da home */}
-              <section className="mb-6">
-                <h2 className="text-2xl text-gray-700 font-bold mb-4">Projetos em Destaque</h2>
-                {projetos.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
-                    <p>Nenhum projeto em destaque.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {projetos.map(projeto => (
-                      <ProjetoCard key={projeto.id} projeto={projeto} />
-                    ))}
-                  </div>
-                )}
-              </section>
-
               {/* Aba de conteúdo: Todos ou Meus */}
               {activeTab === 'todos' ? (
                 <section>

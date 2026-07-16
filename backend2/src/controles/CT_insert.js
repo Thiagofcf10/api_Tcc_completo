@@ -143,11 +143,12 @@ const inserirArquivo = async (req, res) => {
 
         // Se houver arquivo, adicionar informações do arquivo ao body
         if (req.file) {
-            req.body.nome_arquivo = req.file.originalname;
+            const customDisplayName = String(req.body?.nome_arquivo || req.body?.display_name || '').trim();
+            req.body.nome_arquivo = customDisplayName || String(req.file.originalname || '').trim() || null;
             // Salvar apenas o nome do arquivo, não o caminho completo
-            req.body.caminho_arquivo = req.file.filename;
-            req.body.tipo_arquivo = req.file.mimetype;
-            req.body.tamanho_arquivo = req.file.size;
+            req.body.caminho_arquivo = req.file.filename || null;
+            req.body.tipo_arquivo = req.file.mimetype || null;
+            req.body.tamanho_arquivo = req.file.size || 0;
         }
 
         if (projetoId) req.body.projeto_id = projetoId;

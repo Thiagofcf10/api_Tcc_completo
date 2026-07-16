@@ -2,6 +2,7 @@ const express = require('express');
 const router = require('./router');
 const cors = require('cors');
 const path = require('path');
+const { buildPreviewHeaders } = require('./utils/filePreview');
 
 const app = express();
 
@@ -58,9 +59,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// Middleware para parsear JSON
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Middleware para parsear JSON com limite aumentado para 30 MB
+app.use(express.json({ limit: '30mb' }));
+app.use(express.urlencoded({ extended: true, limit: '30mb' }));
 
 // Rotas da API (prefixo opcional para melhor organização)
 app.use('/api', router);
@@ -117,6 +118,9 @@ app.get('/previewarquivo/:filename', (req, res) => {
   if (!realPath.startsWith(uploadsDir)) {
     return res.status(403).json({ error: 'Acesso negado' });
   }
+
+  const headers = buildPreviewHeaders(req.headers.origin || req.headers.referer);
+  Object.entries(headers).forEach(([key, value]) => res.setHeader(key, value));
   
   res.sendFile(filepath, (err) => {
     if (err && !res.headersSent) {
