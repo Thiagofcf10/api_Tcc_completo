@@ -120,11 +120,11 @@ export default function ProjetoDetailPage() {
                   <h1 className="text-2xl font-bold text-gray-800">{projeto.nome_projeto || 'Projeto'}</h1>
                   <p className="text-sm text-gray-600 mt-2"><strong>Tipo:</strong> {projeto.tipo_projeto || '—'}</p>
                   {resumoArquivos ? (
-                    <div className="text-sm text-gray-600 mt-2"><strong>Resumo:</strong> {resumoArquivos}</div>
+                    <div className="text-sm text-justify text-gray-600 mt-2"><strong>Resumo:</strong> {resumoArquivos}</div>
                   ) : null}
                   <p className="text-sm text-gray-600 mt-2"><strong>Orientador:</strong> {orientadorNome || projeto.orientador || '—'}</p>
                   <p className="text-sm text-gray-600"><strong>Coorientador:</strong> {projeto.coorientador || '—'}</p>
-                  <p className="text-sm text-gray-600"><strong>Alunos:</strong> {alunoNomes && alunoNomes.length > 0 ? alunoNomes.join(', ') : (projeto.matricula_alunos || '—')}</p>
+                  <p className="text-sm text-gray-700"><strong>Alunos:</strong> {alunoNomes && alunoNomes.length > 0 ? alunoNomes.join(', ') : (projeto.matricula_alunos || '—')}</p>
                 </div>
                 <button onClick={() => router.back()} className="text-sm text-blue-600 hover:underline">Voltar</button>
               </div>

@@ -31,12 +31,6 @@ export default function Navbar() {
                 <Link href="/projetos" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 w-full px-3 py-2 rounded hover:bg-gray-50">📋 <span className="font-medium">Projetos</span></Link>
                 {/* removed: Arquivos (global) and Avaliação links per request */}
 
-                <div className="border-t my-2" />
-
-                <Link href="/perfil" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 w-full px-3 py-2 rounded hover:bg-gray-50">👤 <span className="font-medium">Perfil</span></Link>
-                <Link href="/contato" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 w-full px-3 py-2 rounded hover:bg-gray-50">✉️ <span className="font-medium">Contato</span></Link>
-                <Link href="/sobre" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 w-full px-3 py-2 rounded hover:bg-gray-50">ℹ️ <span className="font-medium">Sobre</span></Link>
-
                 {user?.tipo === 'professor' && (
                   <>
                     <div className="border-t my-2" />

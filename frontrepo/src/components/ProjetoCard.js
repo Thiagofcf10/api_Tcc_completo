@@ -250,7 +250,7 @@ export default function ProjetoCard({ projeto, onEdit, onDelete, showActions = f
             })()}
             {arquivoResumo ? (
               <div className="text-sm text-gray-700 mb-4">
-                <div className="text-sm text-gray-600 mt-2"><strong>Resumo:</strong> {arquivoResumo}</div>
+                <div className="text-sm text-justify text-gray-600 mt-2"><strong>Resumo:</strong> {arquivoResumo}</div>
               </div>
             ) : (
               <p className="text-sm text-gray-600 mb-4">Resumo não disponível.</p>

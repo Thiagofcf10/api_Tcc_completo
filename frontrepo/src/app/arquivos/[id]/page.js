@@ -223,7 +223,6 @@ export default function ArquivoDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <Navbar />
       <main className="flex-1 p-8">
         {loading ? (
           <div>⏳ Carregando...</div>
@@ -233,14 +232,14 @@ export default function ArquivoDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left: preview */}
             <div className="lg:col-span-2 bg-white rounded shadow p-6">
-              <div className="flex items-start gap-6">
-                <div className="w-48 flex-shrink-0">
+              <div className="flex flex-col sm:flex-row items-start gap-6">
+                <div className="w-full sm:w-48 flex-shrink-0">
                   {isImage(arquivo.caminho_arquivo) ? (
-                    <img src={previewLink(arquivo.caminho_arquivo)} alt={arquivo.nome_arquivo} className="w-48 h-48 object-cover rounded" />
+                    <img src={previewLink(arquivo.caminho_arquivo)} alt={arquivo.nome_arquivo} className="w-full sm:w-48 h-48 object-cover rounded" />
                   ) : isPDF(arquivo.caminho_arquivo) ? (
-                    <div className="w-48 h-48 bg-gray-100 rounded flex items-center justify-center text-gray-500">PDF</div>
+                    <div className="w-full sm:w-48 h-48 bg-gray-100 rounded flex items-center justify-center text-gray-500">PDF</div>
                   ) : (
-                    <div className="w-48 h-48 bg-gray-100 rounded flex items-center justify-center text-gray-500">Arquivo</div>
+                    <div className="w-full sm:w-48 h-48 bg-gray-100 rounded flex items-center justify-center text-gray-500">Arquivo</div>
                   )}
                 </div>
 
@@ -250,16 +249,13 @@ export default function ArquivoDetailPage() {
                     {arquivo.resumo && (
                       <div>
                         <strong>Resumo:</strong>
-                        <div className={`mt-1 text-gray-700 ${resumoExpanded ? '' : 'max-h-20 overflow-hidden'}`}>
+                        <div className={`mt-1 text-gray-700 text-justify ${resumoExpanded ? '' : 'max-h-20 overflow-hidden'}`}>
                           <p>{arquivo.resumo}</p>
                         </div>
                         {String(arquivo.resumo).length > 280 && (
                           <button onClick={() => setResumoExpanded(!resumoExpanded)} className="mt-1 text-xs text-blue-600">{resumoExpanded ? 'Mostrar menos' : 'Mostrar mais'}</button>
                         )}
                       </div>
-                    )}
-                    {arquivo.resumo && (
-                      <p><strong>Resumo do projeto:</strong> {arquivo.resumo}</p>
                     )}
                     {arquivo.nome_projeto && (
                       <p><strong>Nome do projeto:</strong> {arquivo.nome_projeto}</p>
@@ -269,7 +265,7 @@ export default function ArquivoDetailPage() {
               </div>
 
               <div className="mt-6">
-                <h2 className="text-lg font-semibold mb-2">Conteúdo</h2>
+                <h2 className="text-lg font-semibold mb-2 text-gray-800">Conteúdo</h2>
                 {isPDF(arquivo.caminho_arquivo) ? (
                   pdfViewable === null ? (
                     <div className="p-6 rounded border bg-yellow-50 text-yellow-800">Verificando pré-visualização do PDF...</div>
