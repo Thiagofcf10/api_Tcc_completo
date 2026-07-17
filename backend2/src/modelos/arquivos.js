@@ -46,12 +46,8 @@ const inserirArquivo = async (arquivo) => {
     nome_arquivo,
     caminho_arquivo,
     tipo_arquivo,
-    tamanho_arquivo,
-    justificativa,
-    objetivo,
-    sumario,
-    introducao,
-    bibliografia
+    tamanho_arquivo
+
   } = arquivo;
   
   const query = `
@@ -62,14 +58,9 @@ const inserirArquivo = async (arquivo) => {
       nome_arquivo,
       caminho_arquivo,
       tipo_arquivo,
-      tamanho_arquivo,
-      justificativa,
-      objetivo,
-      sumario,
-      introducao,
-      bibliografia
+      tamanho_arquivo
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
   // Use null when id_meuprojeto or projeto_id are not provided to avoid foreign key issues
   const projParam = projeto_id || null;
@@ -82,12 +73,7 @@ const inserirArquivo = async (arquivo) => {
     nome_arquivo || null,
     caminho_arquivo || null,
     tipo_arquivo || null,
-    tamanho_arquivo || 0,
-    justificativa || '',
-    objetivo || '',
-    sumario || '',
-    introducao || '',
-    bibliografia || ''
+    tamanho_arquivo || 0
   ]);
 
   return { insertId: result.insertId };
