@@ -102,7 +102,7 @@ export default function ProjetoDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <main className="flex-1 p-6">
+      <main className="w-full max-w-7xl mx-auto px-6 py-8">
         {loading ? (
           <div className="text-center py-12">
             <div className="text-2xl">⏳ Carregando...</div>

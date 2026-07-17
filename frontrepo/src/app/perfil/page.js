@@ -108,7 +108,7 @@ export default function PerfilPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar (Navbar present in other pages) */}
-      <main className="flex-1 p-8">
+      <main className="w-full max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="col-span-1">
             <h1 className="text-2xl text-black font-bold mb-4">Meu Perfil</h1>

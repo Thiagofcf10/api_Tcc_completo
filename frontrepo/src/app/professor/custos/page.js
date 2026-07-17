@@ -172,7 +172,7 @@ export default function CustosPage() {
     <div className="min-h-screen bg-gray-50 flex">
       <Navbar />
       
-      <main className="flex-1 p-6">
+      <main className="w-full max-w-7xl mx-auto px-6 py-8">
         <h1 className="text-3xl font-bold mb-6 text-gray-800">💰 Gerenciar Custos</h1>
         {selectedProject && (
           <div className="mb-4 rounded-lg border-l-4 border-blue-600 bg-blue-50 p-4">

@@ -223,7 +223,7 @@ export default function ArquivoDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <main className="flex-1 p-8">
+      <main className="w-full max-w-7xl mx-auto px-6 py-8">
         {loading ? (
           <div>⏳ Carregando...</div>
         ) : !arquivo ? (

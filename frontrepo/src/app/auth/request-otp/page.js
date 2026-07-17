@@ -34,7 +34,7 @@ export default function RequestOtpPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-start justify-center py-12">
       <div className="w-full max-w-md bg-white rounded-lg shadow p-6">
-        <h1 className="text-xl font-semibold mb-4">Solicitar Código por Email</h1>
+        <h1 className="text-xl text-gray-700 font-semibold mb-4">Solicitar Código por Email</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm text-gray-700">Email</label>

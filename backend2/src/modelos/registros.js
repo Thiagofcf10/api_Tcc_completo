@@ -26,10 +26,10 @@ const getRegistrosTotal = async () => {
 };
 
 const inserirRegistro = async (registro) => {
-  const { id_projeto, data_reuniao, lista_participantes, duracao_reuniao, titulo_reuniao, relatorio, relatorio_edit_deadline, relatorio_edit_allowed, nome_projeto, resumo } = registro;
+  const { id_projeto, data_reuniao, lista_participantes, duracao_reuniao, titulo_reuniao, relatorio, relatorio_edit_deadline, relatorio_edit_allowed, resumo } = registro;
   const query = `
-    INSERT INTO registros (id_projeto, data_reuniao, lista_participantes, duracao_reuniao, titulo_reuniao, relatorio, relatorio_edit_deadline, relatorio_edit_allowed, nome_projeto, resumo)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO registros (id_projeto, data_reuniao, lista_participantes, duracao_reuniao, titulo_reuniao, relatorio, relatorio_edit_deadline, relatorio_edit_allowed, resumo)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const [result] = await connection.execute(query, [
@@ -41,7 +41,6 @@ const inserirRegistro = async (registro) => {
     relatorio || null,
     relatorio_edit_deadline || null,
     relatorio_edit_allowed || null,
-    nome_projeto || null,
     resumo || null
   ]);
   return { insertId: result.insertId };
@@ -53,10 +52,10 @@ const deleteRegistro = async (id) => {
 };
 
 const atualizarRegistro = async (id, registro) => {
-  const { id_projeto, data_reuniao, lista_participantes, duracao_reuniao, titulo_reuniao, relatorio, relatorio_edit_deadline, relatorio_edit_allowed, nome_projeto, resumo } = registro;
-  const query = 'UPDATE registros SET id_projeto = ?, data_reuniao = ?, lista_participantes = ?, duracao_reuniao = ?, titulo_reuniao = ?, relatorio = ?, relatorio_edit_deadline = ?, relatorio_edit_allowed = ?, nome_projeto = ?, resumo = ? WHERE id = ?';
+  const { id_projeto, data_reuniao, lista_participantes, duracao_reuniao, titulo_reuniao, relatorio, relatorio_edit_deadline, relatorio_edit_allowed, resumo } = registro;
+  const query = 'UPDATE registros SET id_projeto = ?, data_reuniao = ?, lista_participantes = ?, duracao_reuniao = ?, titulo_reuniao = ?, relatorio = ?, relatorio_edit_deadline = ?, relatorio_edit_allowed = ?, resumo = ? WHERE id = ?';
 
-  const [updated] = await connection.execute(query, [id_projeto, data_reuniao, lista_participantes, duracao_reuniao, titulo_reuniao, relatorio || null, relatorio_edit_deadline || null, relatorio_edit_allowed || null, nome_projeto || null, resumo || null, id]);
+  const [updated] = await connection.execute(query, [id_projeto, data_reuniao, lista_participantes, duracao_reuniao, titulo_reuniao, relatorio || null, relatorio_edit_deadline || null, relatorio_edit_allowed || null, resumo || null, id]);
   return updated;
 };
 

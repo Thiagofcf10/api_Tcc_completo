@@ -3,7 +3,7 @@ import Navbar from '@/components/Navbar';
 export default function PoliticaPrivacidadePage(){
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <main className="flex-1 p-6">
+      <main className="w-full max-w-7xl mx-auto px-6 py-8">
         <div className="max-w-7xl mx-auto">
           <div className="bg-white rounded-lg shadow p-6">
             <h1 className="text-3xl text-gray-700 font-bold mb-4">Política de Privacidade</h1>

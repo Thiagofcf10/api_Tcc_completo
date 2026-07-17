@@ -123,7 +123,7 @@ export default function CriarProjetoPage() {
     <div className="min-h-screen bg-gray-50 flex">
       <Navbar />
       
-      <main className="flex-1 p-6">
+      <main className="w-full max-w-7xl mx-auto px-6 py-8">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-3xl font-bold mb-6 text-gray-800">➕ Criar Novo Projeto</h1>
 

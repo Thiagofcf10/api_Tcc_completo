@@ -135,7 +135,7 @@ export default function ProjetosPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-cyan-50 via-sky-50 to-white">
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="w-full max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
         <section className="mb-8">
           <h1 className="text-4xl font-bold text-cyan-900 mb-2">Projetos Publicados</h1>

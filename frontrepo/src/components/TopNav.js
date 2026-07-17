@@ -37,7 +37,7 @@ export default function TopNav() {
               IF
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-base md:text-lg font-bold text-white">Repositório</h1>
+              <h1 className="text-base md:text-lg font-bold text-white">REPOSITÓRIOS DE PROJETOS</h1>
               <p className="text-xs text-green-100">IFPA</p>
             </div>
           </div>
